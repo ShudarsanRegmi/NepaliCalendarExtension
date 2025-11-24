@@ -1,0 +1,13 @@
+{
+  "name": "Simple Extension",
+  "description": "A simple GNOME extension with basic interfaces",
+  "uuid": "simple-extension@example.com",
+  "gettext-domain": "simple-extension",
+  "shell-version": [
+    "42",
+    "45",
+    "46",
+    "47"
+  ],
+  "url": "https://example.com"
+}
