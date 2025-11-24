@@ -1,3 +1,73 @@
 .system-status-icon {
     icon-size: 16px;
 }
+
+.calendar-menu-box {
+    min-width: 350px;
+}
+
+.calendar-header {
+    padding: 10px;
+    spacing: 10px;
+}
+
+.calendar-month-label {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.calendar-grid {
+    spacing: 5px;
+    padding: 10px;
+}
+
+.calendar-day-header {
+    font-weight: bold;
+    color: #888;
+    text-align: center;
+}
+
+.calendar-day {
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.calendar-day:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-day:active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.calendar-day-label {
+    font-size: 1.1em;
+}
+
+.calendar-day-today {
+    background-color: #3584e4;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.calendar-day-holiday {
+    color: #ff7b7b;
+}
+
+.calendar-day-selected {
+    border: 1px solid #3584e4;
+}
+
+.event-box {
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.event-title {
+    font-weight: bold;
+}
+
+.event-tithi {
+    color: #aaa;
+    font-size: 0.9em;
+}

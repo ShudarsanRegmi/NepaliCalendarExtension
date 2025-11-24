@@ -1,6 +1,6 @@
 {
-  "name": "Simple Extension",
-  "description": "A simple GNOME extension with basic interfaces",
+  "name": "Nepali Calendar",
+  "description": "A Nepali Calendar viewer (1970-2074 BS)",
   "uuid": "simple-extension@example.com",
   "gettext-domain": "simple-extension",
   "shell-version": [
