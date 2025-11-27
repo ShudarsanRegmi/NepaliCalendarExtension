@@ -42,6 +42,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
             // Calendar Grid
             this._buildGrid();
 
+            // Month View (Hidden by default)
+            this._buildMonthView();
+
             // Year View (Hidden by default)
             this._buildYearView();
 
@@ -60,20 +63,66 @@ const NepaliCalendarIndicator = GObject.registerClass(
             prevBtn.connect('clicked', () => this._changeMonth(-1));
             headerBox.add_child(prevBtn);
 
-            // Month/Year Label (Clickable)
-            this._monthLabel = new St.Button({
+            // Month Button
+            this._monthBtn = new St.Button({
                 label: 'Loading...',
                 style_class: 'calendar-month-label'
             });
-            this._monthLabel.connect('clicked', () => this._toggleYearView());
-            headerBox.add_child(this._monthLabel);
+            this._monthBtn.connect('clicked', () => this._toggleMonthView());
+            headerBox.add_child(this._monthBtn);
 
             // Next Month Button
             let nextBtn = new St.Button({ label: ' > ' });
             nextBtn.connect('clicked', () => this._changeMonth(1));
             headerBox.add_child(nextBtn);
 
+            // Spacer
+            headerBox.add_child(new St.Label({ text: '   ' }));
+
+            // Year Button
+            this._yearBtn = new St.Button({
+                label: 'Year',
+                style_class: 'calendar-year-label'
+            });
+            this._yearBtn.connect('clicked', () => this._toggleYearView());
+            headerBox.add_child(this._yearBtn);
+
             this._mainBox.add_child(headerBox);
+        }
+
+        _buildMonthView() {
+            this._monthGrid = new Clutter.GridLayout();
+            this._monthWidget = new St.Widget({
+                layout_manager: this._monthGrid,
+                style_class: 'month-grid',
+                visible: false
+            });
+
+            const months = [
+                "Baishakh", "Jestha", "Ashadh", "Shrawan", "Bhadra", "Ashwin",
+                "Kartik", "Mangsir", "Poush", "Magh", "Falgun", "Chaitra"
+            ];
+
+            months.forEach((month, index) => {
+                let btn = new St.Button({
+                    label: month,
+                    style_class: 'month-button',
+                    x_expand: true,
+                    y_expand: true
+                });
+                btn.connect('clicked', () => {
+                    this._currentMonthIndex = index;
+                    this._updateView();
+                    this._toggleMonthView();
+                });
+
+                let row = Math.floor(index / 3);
+                let col = index % 3;
+                this._monthWidget.add_child(btn);
+                this._monthGrid.attach(btn, col, row, 1, 1);
+            });
+
+            this._mainBox.add_child(this._monthWidget);
         }
 
         _buildYearView() {
@@ -81,7 +130,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 style_class: 'year-scroll-view',
                 visible: false
             });
-            this._yearScrollView.set_height(200); // Fixed height for scroll
+            this._yearScrollView.set_height(200);
             this._mainBox.add_child(this._yearScrollView);
 
             this._yearBox = new St.BoxLayout({
@@ -91,13 +140,27 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._yearScrollView.set_child(this._yearBox);
         }
 
+        _toggleMonthView() {
+            let showing = this._monthWidget.visible;
+            if (showing) {
+                this._monthWidget.hide();
+                this._gridWidget.show();
+            } else {
+                this._gridWidget.hide();
+                this._yearScrollView.hide();
+                this._eventBox.hide();
+                this._monthWidget.show();
+            }
+        }
+
         _toggleYearView() {
-            let showingYear = this._yearScrollView.visible;
-            if (showingYear) {
+            let showing = this._yearScrollView.visible;
+            if (showing) {
                 this._yearScrollView.hide();
                 this._gridWidget.show();
             } else {
                 this._gridWidget.hide();
+                this._monthWidget.hide();
                 this._eventBox.hide();
                 this._yearScrollView.show();
                 this._populateYearList();
@@ -167,7 +230,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
         _loadYear(year) {
             this._yearData = this._calendarData.getYearData(year);
             if (!this._yearData) {
-                this._monthLabel.set_label(`Error loading ${year}`);
+                this._monthBtn.set_label(`Error`);
+                this._yearBtn.set_label(`${year}`);
                 return;
             }
             this._updateView();
@@ -196,7 +260,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
             const monthName = months[this._currentMonthIndex];
             const monthData = this._yearData[monthName];
 
-            this._monthLabel.set_label(`${monthName} ${this._currentYear} ▼`);
+            this._monthBtn.set_label(monthName);
+            this._yearBtn.set_label(this._currentYear.toString());
 
             // Clear previous days (keep headers)
             let children = this._gridWidget.get_children();
@@ -208,21 +273,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
             let row = 1;
             let col = 0;
 
-            // Find start day offset (simplified for now, assumes data has empty entries for padding)
-            // The JSON structure seems to have empty entries for padding at start
-
             monthData.forEach((dayData) => {
-                // Determine column based on 'day' field if needed, but array order implies sequence
-                // The JSON has "day": "sun", "mon" etc.
                 const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
                 let dayCol = dayMap[dayData.day.toLowerCase()];
-
-                // If we are at start of month, align row
-                if (row === 1 && col !== dayCol) {
-                    // This logic handles if the array is sparse or we need to skip
-                    // But looking at JSON, it seems to have empty objects for padding?
-                    // "np": "", "en": "" -> padding
-                }
 
                 let btn = new St.Button({
                     style_class: 'calendar-day',
@@ -257,7 +310,11 @@ const NepaliCalendarIndicator = GObject.registerClass(
             let eventText = dayData.event || 'No events';
             let tithiText = dayData.tithi || '';
 
-            this._eventTitle.set_text(`${dayData.np} ${this._monthLabel.text}: ${eventText}`);
+            // Fix: Use get_label() for buttons
+            let monthName = this._monthBtn.get_label();
+            let year = this._yearBtn.get_label();
+
+            this._eventTitle.set_text(`${dayData.np} ${monthName} ${year}: ${eventText}`);
             this._eventTithi.set_text(tithiText);
         }
     });
