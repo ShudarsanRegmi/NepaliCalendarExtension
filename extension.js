@@ -42,6 +42,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
             // Calendar Grid
             this._buildGrid();
 
+            // Year View (Hidden by default)
+            this._buildYearView();
+
             // Event Details
             this._buildEventDetails();
         }
@@ -57,12 +60,12 @@ const NepaliCalendarIndicator = GObject.registerClass(
             prevBtn.connect('clicked', () => this._changeMonth(-1));
             headerBox.add_child(prevBtn);
 
-            // Month/Year Label
-            this._monthLabel = new St.Label({
-                text: 'Loading...',
-                style_class: 'calendar-month-label',
-                y_align: Clutter.ActorAlign.CENTER
+            // Month/Year Label (Clickable)
+            this._monthLabel = new St.Button({
+                label: 'Loading...',
+                style_class: 'calendar-month-label'
             });
+            this._monthLabel.connect('clicked', () => this._toggleYearView());
             headerBox.add_child(this._monthLabel);
 
             // Next Month Button
@@ -71,6 +74,56 @@ const NepaliCalendarIndicator = GObject.registerClass(
             headerBox.add_child(nextBtn);
 
             this._mainBox.add_child(headerBox);
+        }
+
+        _buildYearView() {
+            this._yearScrollView = new St.ScrollView({
+                style_class: 'year-scroll-view',
+                visible: false
+            });
+            this._yearScrollView.set_height(200); // Fixed height for scroll
+            this._mainBox.add_child(this._yearScrollView);
+
+            this._yearBox = new St.BoxLayout({
+                vertical: true,
+                style_class: 'year-list'
+            });
+            this._yearScrollView.set_child(this._yearBox);
+        }
+
+        _toggleYearView() {
+            let showingYear = this._yearScrollView.visible;
+            if (showingYear) {
+                this._yearScrollView.hide();
+                this._gridWidget.show();
+            } else {
+                this._gridWidget.hide();
+                this._eventBox.hide();
+                this._yearScrollView.show();
+                this._populateYearList();
+            }
+        }
+
+        _populateYearList() {
+            this._yearBox.destroy_all_children();
+            let years = this._calendarData.getAvailableYears();
+            years.forEach(year => {
+                let btn = new St.Button({
+                    label: year.toString(),
+                    style_class: 'year-button',
+                    x_fill: true,
+                    y_align: Clutter.ActorAlign.CENTER
+                });
+                if (year === this._currentYear) {
+                    btn.add_style_class_name('current-year');
+                }
+                btn.connect('clicked', () => {
+                    this._currentYear = year;
+                    this._loadYear(year);
+                    this._toggleYearView();
+                });
+                this._yearBox.add_child(btn);
+            });
         }
 
         _buildGrid() {
@@ -114,7 +167,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
         _loadYear(year) {
             this._yearData = this._calendarData.getYearData(year);
             if (!this._yearData) {
-                this._monthLabel.set_text(`Error loading ${year}`);
+                this._monthLabel.set_label(`Error loading ${year}`);
                 return;
             }
             this._updateView();
@@ -143,7 +196,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
             const monthName = months[this._currentMonthIndex];
             const monthData = this._yearData[monthName];
 
-            this._monthLabel.set_text(`${monthName} ${this._currentYear}`);
+            this._monthLabel.set_label(`${monthName} ${this._currentYear} ▼`);
 
             // Clear previous days (keep headers)
             let children = this._gridWidget.get_children();
@@ -215,6 +268,7 @@ class Extension {
     }
 
     enable() {
+        log('NepaliCalendar: Enabling extension version with Year Selector');
         this._indicator = new NepaliCalendarIndicator();
         Main.panel.addToStatusArea(this._uuid, this._indicator);
     }

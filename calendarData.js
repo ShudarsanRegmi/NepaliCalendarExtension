@@ -38,11 +38,13 @@ var CalendarData = class CalendarData {
         let file = Gio.File.new_for_path(filePath);
 
         if (!file.query_exists(null)) {
+            log(`[NepaliCalendar] File not found: ${filePath}`);
             return null;
         }
 
         let [success, contents] = file.load_contents(null);
         if (!success) {
+            log(`[NepaliCalendar] Failed to load contents for ${filePath}`);
             return null;
         }
 
@@ -52,9 +54,10 @@ var CalendarData = class CalendarData {
         try {
             let data = JSON.parse(jsonString);
             this._cache[year] = data;
+            log(`[NepaliCalendar] Successfully loaded data for ${year}`);
             return data;
         } catch (e) {
-            logError(e, `Failed to parse JSON for year ${year}`);
+            logError(e, `[NepaliCalendar] Failed to parse JSON for year ${year} at ${filePath}`);
             return null;
         }
     }
