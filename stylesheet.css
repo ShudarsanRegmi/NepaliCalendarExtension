@@ -3,33 +3,118 @@
 }
 
 .calendar-menu-box {
-    min-width: 350px;
+    min-width: 320px;
+    max-width: 350px;
 }
 
 .calendar-header {
-    padding: 10px;
+    padding: 8px 12px;
     spacing: 10px;
 }
 
-.calendar-month-label {
+/* Month Navigation Container */
+.month-nav-container {
+    spacing: 4px;
+    padding: 2px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+/* Year Navigation Container */
+.year-nav-container {
+    spacing: 4px;
+    padding: 2px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+/* Small Navigation Buttons */
+.nav-button-small {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.08);
+    font-size: 0.9em;
     font-weight: bold;
-    font-size: 1.2em;
+    transition-duration: 150ms;
+}
+
+.nav-button-small:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transition-duration: 150ms;
+}
+
+.nav-button-small:active {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Compact Month Selector */
+.calendar-month-selector-compact {
+    font-weight: bold;
+    font-size: 1em;
+    min-width: 80px;
+    max-width: 100px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: rgba(53, 132, 228, 0.15);
+    border: 1px solid rgba(53, 132, 228, 0.3);
+    transition-duration: 150ms;
+    cursor: pointer;
+}
+
+.calendar-month-selector-compact:hover {
+    background-color: rgba(53, 132, 228, 0.25);
+    border: 1px solid rgba(53, 132, 228, 0.5);
+    transition-duration: 150ms;
+}
+
+.calendar-month-selector-compact:active {
+    background-color: rgba(53, 132, 228, 0.35);
+}
+
+/* Compact Year Selector */
+.calendar-year-selector-compact {
+    font-weight: bold;
+    font-size: 1em;
+    min-width: 50px;
+    max-width: 70px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition-duration: 150ms;
+    cursor: pointer;
+}
+
+.calendar-year-selector-compact:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition-duration: 150ms;
+}
+
+.calendar-year-selector-compact:active {
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .calendar-grid {
-    spacing: 5px;
-    padding: 10px;
+    spacing: 3px;
+    padding: 8px;
 }
 
 .calendar-day-header {
     font-weight: bold;
     color: #888;
     text-align: center;
+    font-size: 0.9em;
+    min-width: 32px;
 }
 
 .calendar-day {
-    padding: 8px;
-    border-radius: 4px;
+    padding: 6px;
+    border-radius: 3px;
+    min-width: 32px;
+    min-height: 32px;
 }
 
 .calendar-day:hover {
@@ -41,7 +126,7 @@
 }
 
 .calendar-day-label {
-    font-size: 1.1em;
+    font-size: 1em;
 }
 
 .calendar-day-today {
@@ -59,15 +144,16 @@
 }
 
 .event-box {
-    padding: 10px;
+    padding: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .event-title {
     font-weight: bold;
+    font-size: 0.95em;
 }
 
 .event-tithi {
     color: #aaa;
-    font-size: 0.9em;
+    font-size: 0.85em;
 }

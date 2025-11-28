@@ -42,12 +42,6 @@ const NepaliCalendarIndicator = GObject.registerClass(
             // Calendar Grid
             this._buildGrid();
 
-            // Month View (Hidden by default)
-            this._buildMonthView();
-
-            // Year View (Hidden by default)
-            this._buildYearView();
-
             // Event Details
             this._buildEventDetails();
         }
@@ -58,135 +52,103 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 x_align: Clutter.ActorAlign.CENTER
             });
 
-            // Prev Month Button
-            let prevBtn = new St.Button({ label: ' < ' });
-            prevBtn.connect('clicked', () => this._changeMonth(-1));
-            headerBox.add_child(prevBtn);
+            // Month Navigation Container
+            let monthNavBox = new St.BoxLayout({
+                style_class: 'month-nav-container'
+            });
 
-            // Month Button
+            // Prev Month Button
+            let prevMonthBtn = new St.Button({
+                label: '<',
+                style_class: 'nav-button nav-button-small'
+            });
+            prevMonthBtn.connect('clicked', () => this._changeMonth(-1));
+            monthNavBox.add_child(prevMonthBtn);
+
+            // Month Button (smaller and compact)
             this._monthBtn = new St.Button({
                 label: 'Loading...',
-                style_class: 'calendar-month-label'
+                style_class: 'calendar-month-selector-compact'
             });
-            this._monthBtn.connect('clicked', () => this._toggleMonthView());
-            headerBox.add_child(this._monthBtn);
+            this._monthBtn.connect('clicked', () => this._cycleMonth());
+            monthNavBox.add_child(this._monthBtn);
 
             // Next Month Button
-            let nextBtn = new St.Button({ label: ' > ' });
-            nextBtn.connect('clicked', () => this._changeMonth(1));
-            headerBox.add_child(nextBtn);
+            let nextMonthBtn = new St.Button({
+                label: '>',
+                style_class: 'nav-button nav-button-small'
+            });
+            nextMonthBtn.connect('clicked', () => this._changeMonth(1));
+            monthNavBox.add_child(nextMonthBtn);
 
-            // Spacer
-            headerBox.add_child(new St.Label({ text: '   ' }));
+            headerBox.add_child(monthNavBox);
 
-            // Year Button
+            // Year Navigation Container
+            let yearNavBox = new St.BoxLayout({
+                style_class: 'year-nav-container'
+            });
+
+            // Prev Year Button
+            let prevYearBtn = new St.Button({
+                label: '<',
+                style_class: 'nav-button nav-button-small'
+            });
+            prevYearBtn.connect('clicked', () => this._changeYear(-1));
+            yearNavBox.add_child(prevYearBtn);
+
+            // Year Button (smaller and compact)
             this._yearBtn = new St.Button({
                 label: 'Year',
-                style_class: 'calendar-year-label'
+                style_class: 'calendar-year-selector-compact'
             });
-            this._yearBtn.connect('clicked', () => this._toggleYearView());
-            headerBox.add_child(this._yearBtn);
+            this._yearBtn.connect('clicked', () => this._cycleYear());
+            yearNavBox.add_child(this._yearBtn);
+
+            // Next Year Button
+            let nextYearBtn = new St.Button({
+                label: '>',
+                style_class: 'nav-button nav-button-small'
+            });
+            nextYearBtn.connect('clicked', () => this._changeYear(1));
+            yearNavBox.add_child(nextYearBtn);
+
+            headerBox.add_child(yearNavBox);
 
             this._mainBox.add_child(headerBox);
         }
 
-        _buildMonthView() {
-            this._monthGrid = new Clutter.GridLayout();
-            this._monthWidget = new St.Widget({
-                layout_manager: this._monthGrid,
-                style_class: 'month-grid',
-                visible: false
-            });
-
-            const months = [
-                "Baishakh", "Jestha", "Ashadh", "Shrawan", "Bhadra", "Ashwin",
-                "Kartik", "Mangsir", "Poush", "Magh", "Falgun", "Chaitra"
-            ];
-
-            months.forEach((month, index) => {
-                let btn = new St.Button({
-                    label: month,
-                    style_class: 'month-button',
-                    x_expand: true,
-                    y_expand: true
-                });
-                btn.connect('clicked', () => {
-                    this._currentMonthIndex = index;
-                    this._updateView();
-                    this._toggleMonthView();
-                });
-
-                let row = Math.floor(index / 3);
-                let col = index % 3;
-                this._monthWidget.add_child(btn);
-                this._monthGrid.attach(btn, col, row, 1, 1);
-            });
-
-            this._mainBox.add_child(this._monthWidget);
-        }
-
-        _buildYearView() {
-            this._yearScrollView = new St.ScrollView({
-                style_class: 'year-scroll-view',
-                visible: false
-            });
-            this._yearScrollView.set_height(200);
-            this._mainBox.add_child(this._yearScrollView);
-
-            this._yearBox = new St.BoxLayout({
-                vertical: true,
-                style_class: 'year-list'
-            });
-            this._yearScrollView.set_child(this._yearBox);
-        }
-
-        _toggleMonthView() {
-            let showing = this._monthWidget.visible;
-            if (showing) {
-                this._monthWidget.hide();
-                this._gridWidget.show();
-            } else {
-                this._gridWidget.hide();
-                this._yearScrollView.hide();
-                this._eventBox.hide();
-                this._monthWidget.show();
+        _cycleMonth() {
+            this._currentMonthIndex++;
+            if (this._currentMonthIndex > 11) {
+                this._currentMonthIndex = 0;
             }
+            this._updateView();
         }
 
-        _toggleYearView() {
-            let showing = this._yearScrollView.visible;
-            if (showing) {
-                this._yearScrollView.hide();
-                this._gridWidget.show();
-            } else {
-                this._gridWidget.hide();
-                this._monthWidget.hide();
-                this._eventBox.hide();
-                this._yearScrollView.show();
-                this._populateYearList();
-            }
-        }
-
-        _populateYearList() {
-            this._yearBox.destroy_all_children();
+        _cycleYear() {
             let years = this._calendarData.getAvailableYears();
-            years.forEach(year => {
-                let btn = new St.Button({
-                    label: year.toString(),
-                    style_class: 'year-button',
-                    x_fill: true,
-                    y_align: Clutter.ActorAlign.CENTER
-                });
-                if (year === this._currentYear) {
-                    btn.add_style_class_name('current-year');
-                }
-                btn.connect('clicked', () => {
-                    this._currentYear = year;
-                    this._loadYear(year);
-                    this._toggleYearView();
-                });
-                this._yearBox.add_child(btn);
-            });
+            let currentIndex = years.indexOf(this._currentYear);
+            currentIndex++;
+            if (currentIndex >= years.length) {
+                currentIndex = 0;
+            }
+            this._currentYear = years[currentIndex];
+            this._loadYear(this._currentYear);
+        }
+
+        _changeYear(delta) {
+            let years = this._calendarData.getAvailableYears();
+            let currentIndex = years.indexOf(this._currentYear);
+            currentIndex += delta;
+            
+            if (currentIndex < 0) {
+                currentIndex = years.length - 1;
+            } else if (currentIndex >= years.length) {
+                currentIndex = 0;
+            }
+            
+            this._currentYear = years[currentIndex];
+            this._loadYear(this._currentYear);
         }
 
         _buildGrid() {
@@ -260,6 +222,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
             const monthName = months[this._currentMonthIndex];
             const monthData = this._yearData[monthName];
 
+            // Update button labels (no dropdown arrows needed)
             this._monthBtn.set_label(monthName);
             this._yearBtn.set_label(this._currentYear.toString());
 
