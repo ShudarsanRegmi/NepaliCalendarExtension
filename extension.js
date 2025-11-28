@@ -14,11 +14,22 @@ const NepaliCalendarIndicator = GObject.registerClass(
         _init() {
             super._init(0.5, _('Nepali Calendar')); // 0.5 centers the button
 
-            this.add_child(new St.Label({
+            // Create a centered container for the flag
+            let flagContainer = new St.BoxLayout({
+                vertical: false,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'panel-flag-container'
+            });
+
+            flagContainer.add_child(new St.Label({
                 text: '🇳🇵',
                 y_align: Clutter.ActorAlign.CENTER,
-                x_align: Clutter.ActorAlign.CENTER
+                x_align: Clutter.ActorAlign.CENTER,
+                style_class: 'panel-flag-label'
             }));
+
+            this.add_child(flagContainer);
 
             this._calendarData = new CalendarData.CalendarData();
             this._currentYear = 2074; // Default to last available year
@@ -50,12 +61,14 @@ const NepaliCalendarIndicator = GObject.registerClass(
         _buildHeader() {
             let headerBox = new St.BoxLayout({
                 style_class: 'calendar-header',
-                x_align: Clutter.ActorAlign.CENTER
+                x_align: Clutter.ActorAlign.CENTER,
+                vertical: false
             });
 
             // Month Navigation Container
             let monthNavBox = new St.BoxLayout({
-                style_class: 'month-nav-container'
+                style_class: 'month-nav-container',
+                vertical: false
             });
 
             // Prev Month Button
@@ -84,9 +97,17 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             headerBox.add_child(monthNavBox);
 
+            // Spacer to separate month and year controls
+            let spacer = new St.Widget({
+                style_class: 'header-spacer',
+                width: 15
+            });
+            headerBox.add_child(spacer);
+
             // Year Navigation Container
             let yearNavBox = new St.BoxLayout({
-                style_class: 'year-nav-container'
+                style_class: 'year-nav-container',
+                vertical: false
             });
 
             // Prev Year Button

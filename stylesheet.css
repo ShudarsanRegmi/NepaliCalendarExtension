@@ -2,43 +2,63 @@
     icon-size: 16px;
 }
 
+/* Panel Flag Container */
+.panel-flag-container {
+    padding: 0px;
+    margin: 0px;
+}
+
+.panel-flag-label {
+    text-align: center;
+    font-size: 16px;
+    padding: 0px;
+    margin: 0px;
+}
+
 .calendar-menu-box {
-    min-width: 300px;
-    max-width: 320px;
+    min-width: 380px;
+    max-width: 400px;
 }
 
 .calendar-header {
-    padding: 8px 12px;
-    spacing: 8px;
-    x_align: center;
+    padding: 10px 14px;
+    spacing: 12px;
+}
+
+/* Header Spacer */
+.header-spacer {
+    min-width: 15px;
+    background-color: transparent;
 }
 
 /* Month Navigation Container */
 .month-nav-container {
-    spacing: 4px;
-    padding: 2px;
+    spacing: 5px;
+    padding: 4px;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
-    min-width: 140px;
+    min-width: 145px;
+    max-width: 150px;
 }
 
 /* Year Navigation Container */
 .year-nav-container {
-    spacing: 4px;
-    padding: 2px;
+    spacing: 5px;
+    padding: 4px;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
-    min-width: 110px;
+    min-width: 115px;
+    max-width: 120px;
 }
 
 /* Small Navigation Buttons */
 .nav-button-small {
-    min-width: 20px;
-    min-height: 20px;
+    min-width: 24px;
+    min-height: 24px;
     padding: 4px 6px;
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.08);
-    font-size: 0.85em;
+    font-size: 0.9em;
     font-weight: bold;
     transition-duration: 150ms;
     text-align: center;
@@ -57,9 +77,9 @@
 .calendar-month-selector-compact {
     font-weight: bold;
     font-size: 1em;
-    min-width: 80px;
-    max-width: 100px;
-    padding: 6px 12px;
+    min-width: 75px;
+    max-width: 85px;
+    padding: 6px 10px;
     border-radius: 4px;
     background-color: rgba(53, 132, 228, 0.15);
     border: 1px solid rgba(53, 132, 228, 0.3);
@@ -81,9 +101,9 @@
 .calendar-year-selector-compact {
     font-weight: bold;
     font-size: 0.95em;
-    min-width: 45px;
-    max-width: 60px;
-    padding: 6px 10px;
+    min-width: 48px;
+    max-width: 58px;
+    padding: 6px 8px;
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -103,23 +123,23 @@
 }
 
 .calendar-grid {
-    spacing: 3px;
-    padding: 8px;
+    spacing: 5px;
+    padding: 12px;
 }
 
 .calendar-day-header {
     font-weight: bold;
     color: #888;
     text-align: center;
-    font-size: 0.9em;
-    min-width: 32px;
+    font-size: 0.95em;
+    min-width: 36px;
 }
 
 .calendar-day {
-    padding: 6px;
-    border-radius: 3px;
-    min-width: 32px;
-    min-height: 32px;
+    padding: 8px;
+    border-radius: 4px;
+    min-width: 36px;
+    min-height: 36px;
     text-align: center;
     vertical-align: middle;
 }
