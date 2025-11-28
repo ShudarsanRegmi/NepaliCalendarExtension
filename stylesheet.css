@@ -133,6 +133,9 @@
     text-align: center;
     font-size: 0.95em;
     min-width: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px;
+    border-radius: 3px;
 }
 
 .calendar-day {
@@ -142,14 +145,18 @@
     min-height: 36px;
     text-align: center;
     vertical-align: middle;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.02);
 }
 
 .calendar-day:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .calendar-day:active {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .calendar-day-label {
@@ -162,14 +169,17 @@
     background-color: #3584e4;
     color: #ffffff;
     font-weight: bold;
+    border: 1px solid #5aa3f0;
 }
 
 .calendar-day-holiday {
     color: #ff7b7b;
+    border: 1px solid rgba(255, 123, 123, 0.3);
 }
 
 .calendar-day-selected {
-    border: 1px solid #3584e4;
+    border: 2px solid #3584e4;
+    background-color: rgba(53, 132, 228, 0.1);
 }
 
 .event-box {
