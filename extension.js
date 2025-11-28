@@ -12,11 +12,12 @@ const _ = ExtensionUtils.gettext;
 const NepaliCalendarIndicator = GObject.registerClass(
     class NepaliCalendarIndicator extends PanelMenu.Button {
         _init() {
-            super._init(0.0, _('Nepali Calendar'));
+            super._init(0.5, _('Nepali Calendar')); // 0.5 centers the button
 
             this.add_child(new St.Label({
                 text: '🇳🇵',
                 y_align: Clutter.ActorAlign.CENTER,
+                x_align: Clutter.ActorAlign.CENTER
             }));
 
             this._calendarData = new CalendarData.CalendarData();
@@ -242,7 +243,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
                 let btn = new St.Button({
                     style_class: 'calendar-day',
-                    can_focus: true
+                    can_focus: true,
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER
                 });
 
                 if (dayData.holiday) {
@@ -253,7 +256,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 if (labelText) {
                     btn.set_child(new St.Label({
                         text: labelText,
-                        style_class: 'calendar-day-label'
+                        style_class: 'calendar-day-label',
+                        x_align: Clutter.ActorAlign.CENTER,
+                        y_align: Clutter.ActorAlign.CENTER
                     }));
 
                     btn.connect('clicked', () => this._showDetails(dayData));

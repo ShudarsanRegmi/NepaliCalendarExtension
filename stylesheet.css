@@ -3,13 +3,14 @@
 }
 
 .calendar-menu-box {
-    min-width: 320px;
-    max-width: 350px;
+    min-width: 300px;
+    max-width: 320px;
 }
 
 .calendar-header {
     padding: 8px 12px;
-    spacing: 10px;
+    spacing: 8px;
+    x_align: center;
 }
 
 /* Month Navigation Container */
@@ -18,6 +19,7 @@
     padding: 2px;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
+    min-width: 140px;
 }
 
 /* Year Navigation Container */
@@ -26,18 +28,20 @@
     padding: 2px;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
+    min-width: 110px;
 }
 
 /* Small Navigation Buttons */
 .nav-button-small {
-    min-width: 24px;
-    min-height: 24px;
-    padding: 4px 8px;
+    min-width: 20px;
+    min-height: 20px;
+    padding: 4px 6px;
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.08);
-    font-size: 0.9em;
+    font-size: 0.85em;
     font-weight: bold;
     transition-duration: 150ms;
+    text-align: center;
 }
 
 .nav-button-small:hover {
@@ -76,15 +80,16 @@
 /* Compact Year Selector */
 .calendar-year-selector-compact {
     font-weight: bold;
-    font-size: 1em;
-    min-width: 50px;
-    max-width: 70px;
-    padding: 6px 12px;
+    font-size: 0.95em;
+    min-width: 45px;
+    max-width: 60px;
+    padding: 6px 10px;
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
     transition-duration: 150ms;
     cursor: pointer;
+    text-align: center;
 }
 
 .calendar-year-selector-compact:hover {
@@ -115,6 +120,8 @@
     border-radius: 3px;
     min-width: 32px;
     min-height: 32px;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .calendar-day:hover {
@@ -127,6 +134,8 @@
 
 .calendar-day-label {
     font-size: 1em;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .calendar-day-today {
