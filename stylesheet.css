@@ -19,9 +19,9 @@
 
 /* Main Calendar Container - Modern Glass Design */
 .calendar-menu-box {
-    min-width: 320px;
-    max-width: 320px;
-    padding: 20px;
+    min-width: 280px;
+    max-width: 280px;
+    padding: 16px;
     border-radius: 16px;
     background-color: rgba(36, 11, 54, 0.95);
     border: 1px solid rgba(255, 215, 0, 0.2);
@@ -30,45 +30,61 @@
 
 /* Header and Navigation - Clean Modern Design */
 .calendar-header {
-    padding: 0px 0px 20px 0px;
-    spacing: 8px;
+    padding: 0px 0px 12px 0px;
+    spacing: 6px;
 }
 
 .header-spacer {
-    min-width: 12px;
+    min-width: 20px;
     background-color: transparent;
 }
 
-/* Navigation Containers - Sleek Design */
+/* Navigation Containers - Compact Design */
 .month-nav-container {
-    spacing: 4px;
-    padding: 8px;
+    spacing: 2px;
+    padding: 4px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 12px;
-    min-width: 130px;
-    max-width: 130px;
+    border-radius: 8px;
+    min-width: 145px;
+    max-width: 145px;
+}
+
+.header-spacer {
+    min-width: 6px;
+    background-color: transparent;
+}
+
+/* Navigation Containers - Compact Design */
+.month-nav-container {
+    spacing: 2px;
+    padding: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 8px;
+    min-width: 140px;
+    max-width: 140px;
 }
 
 .year-nav-container {
-    spacing: 4px;
-    padding: 8px;
+    spacing: 2px;
+    padding: 4px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 12px;
-    min-width: 100px;
-    max-width: 100px;
+    border-radius: 8px;
+    min-width: 110px;
+    max-width: 110px;
 }
 
-/* Navigation Buttons - Premium Feel */
+/* Navigation Buttons - Compact Feel */
 .nav-button-small {
-    min-width: 28px;
-    min-height: 28px;
-    padding: 6px;
-    border-radius: 6px;
+    min-width: 20px;
+    min-height: 20px;
+    padding: 2px;
+    border-radius: 4px;
     background-color: rgba(255, 215, 0, 0.1);
     border: 1px solid rgba(255, 215, 0, 0.3);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: #FFD700;
     text-align: center;
@@ -78,22 +94,22 @@
 .nav-button-small:hover {
     background-color: rgba(255, 215, 0, 0.2);
     border-color: rgba(255, 215, 0, 0.5);
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
 .nav-button-small:active {
     background-color: rgba(255, 215, 0, 0.3);
-    transform: scale(0.95);
+    transform: scale(0.9);
 }
 
-/* Month and Year Selectors - Modern Typography */
+/* Month and Year Selectors - Compact Typography */
 .calendar-month-selector-compact {
     font-weight: 600;
-    font-size: 15px;
-    min-width: 70px;
-    max-width: 70px;
-    padding: 10px 8px;
-    border-radius: 8px;
+    font-size: 13px;
+    min-width: 85px;
+    max-width: 85px;
+    padding: 6px 4px;
+    border-radius: 6px;
     background-color: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 215, 0, 0.2);
     color: #ffffff;
@@ -111,11 +127,11 @@
 
 .calendar-year-selector-compact {
     font-weight: 600;
-    font-size: 15px;
-    min-width: 50px;
-    max-width: 50px;
-    padding: 10px 6px;
-    border-radius: 8px;
+    font-size: 13px;
+    min-width: 45px;
+    max-width: 45px;
+    padding: 6px 2px;
+    border-radius: 6px;
     background-color: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 215, 0, 0.2);
     color: #ffffff;

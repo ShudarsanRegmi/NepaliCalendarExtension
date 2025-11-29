@@ -112,7 +112,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
             // Spacer to separate month and year controls
             let spacer = new St.Widget({
                 style_class: 'header-spacer',
-                width: 15
+                width: 25
             });
             headerBox.add_child(spacer);
 
@@ -412,7 +412,7 @@ class Extension {
     enable() {
         log('NepaliCalendar: Enabling extension version with Year Selector');
         this._indicator = new NepaliCalendarIndicator();
-        Main.panel.addToStatusArea(this._uuid, this._indicator);
+        Main.panel.addToStatusArea(this._uuid, this._indicator, 0, 'center');
     }
 
     disable() {
