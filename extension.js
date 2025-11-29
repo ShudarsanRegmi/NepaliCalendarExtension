@@ -7,6 +7,7 @@ const PopupMenu = imports.ui.popupMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const CalendarData = Me.imports.calendarData;
+const DateConverter = Me.imports.dateConverter;
 const _ = ExtensionUtils.gettext;
 
 const NepaliCalendarIndicator = GObject.registerClass(
@@ -32,9 +33,20 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this.add_child(flagContainer);
 
             this._calendarData = new CalendarData.CalendarData();
-            this._currentYear = 2074; // Default to last available year
-            this._currentMonthIndex = 0; // Baishakh
-            this._selectedDay = null;
+            this._dateConverter = new DateConverter.DateConverter();
+            
+            // Get current Nepali date and set it as default
+            this._currentNepaliDate = this._dateConverter.getCurrentNepaliDate();
+            this._selectedNepaliDate = null; // Track user selected date
+            
+            if (this._currentNepaliDate) {
+                this._currentYear = this._currentNepaliDate.year;
+                this._currentMonthIndex = this._currentNepaliDate.month - 1; // Convert to 0-based index
+                log(`[NepaliCalendar] Current Nepali Date: ${this._currentNepaliDate.formatted}`);
+            } else {
+                this._currentYear = 2074; // Fallback
+                this._currentMonthIndex = 0;
+            }
 
             this._buildUI();
             this._loadYear(this._currentYear);
@@ -144,6 +156,13 @@ const NepaliCalendarIndicator = GObject.registerClass(
             if (this._currentMonthIndex > 11) {
                 this._currentMonthIndex = 0;
             }
+            
+            // Clear selection when changing month
+            if (this._selectedNepaliDate && 
+                this._selectedNepaliDate.month !== this._currentMonthIndex + 1) {
+                this._selectedNepaliDate = null;
+            }
+            
             this._updateView();
         }
 
@@ -155,6 +174,13 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 currentIndex = 0;
             }
             this._currentYear = years[currentIndex];
+            
+            // Clear selection when changing year
+            if (this._selectedNepaliDate && 
+                this._selectedNepaliDate.year !== this._currentYear) {
+                this._selectedNepaliDate = null;
+            }
+            
             this._loadYear(this._currentYear);
         }
 
@@ -170,11 +196,20 @@ const NepaliCalendarIndicator = GObject.registerClass(
             }
             
             this._currentYear = years[currentIndex];
+            
+            // Clear selection when changing year
+            if (this._selectedNepaliDate && 
+                this._selectedNepaliDate.year !== this._currentYear) {
+                this._selectedNepaliDate = null;
+            }
+            
             this._loadYear(this._currentYear);
         }
 
         _buildGrid() {
             this._grid = new Clutter.GridLayout();
+            this._grid.set_row_spacing(0);
+            this._grid.set_column_spacing(0);
 
             this._gridWidget = new St.Widget({
                 layout_manager: this._grid,
@@ -186,7 +221,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
             days.forEach((day, col) => {
                 let label = new St.Label({
                     text: day,
-                    style_class: 'calendar-day-header'
+                    style_class: 'calendar-day-header',
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER
                 });
                 this._gridWidget.add_child(label);
                 this._grid.attach(label, col, 0, 1, 1);
@@ -235,6 +272,13 @@ const NepaliCalendarIndicator = GObject.registerClass(
             } else {
                 this._updateView();
             }
+
+            // Clear selection when navigating to different month
+            if (this._selectedNepaliDate && 
+                (this._selectedNepaliDate.month !== this._currentMonthIndex + 1 || 
+                 this._selectedNepaliDate.year !== this._currentYear)) {
+                this._selectedNepaliDate = null;
+            }
         }
 
         _updateView() {
@@ -273,8 +317,33 @@ const NepaliCalendarIndicator = GObject.registerClass(
                     btn.add_style_class_name('calendar-day-holiday');
                 }
 
+                // Add Saturday styling
+                if (dayData.day && dayData.day.toLowerCase() === 'sat') {
+                    btn.add_style_class_name('calendar-day-saturday');
+                }
+
                 let labelText = dayData.np || '';
                 if (labelText) {
+                    // Check if this is today's date
+                    const isToday = this._currentNepaliDate && 
+                                   this._currentNepaliDate.year === this._currentYear &&
+                                   this._currentNepaliDate.month === this._currentMonthIndex + 1 &&
+                                   this._currentNepaliDate.day === parseInt(labelText);
+
+                    // Check if this is the selected date
+                    const isSelected = this._selectedNepaliDate &&
+                                      this._selectedNepaliDate.year === this._currentYear &&
+                                      this._selectedNepaliDate.month === this._currentMonthIndex + 1 &&
+                                      this._selectedNepaliDate.day === parseInt(labelText);
+
+                    if (isToday) {
+                        btn.add_style_class_name('calendar-day-today');
+                    }
+
+                    if (isSelected) {
+                        btn.add_style_class_name('calendar-day-selected');
+                    }
+
                     btn.set_child(new St.Label({
                         text: labelText,
                         style_class: 'calendar-day-label',
@@ -282,7 +351,17 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         y_align: Clutter.ActorAlign.CENTER
                     }));
 
-                    btn.connect('clicked', () => this._showDetails(dayData));
+                    btn.connect('clicked', () => {
+                        // Set selected date
+                        this._selectedNepaliDate = {
+                            year: this._currentYear,
+                            month: this._currentMonthIndex + 1,
+                            day: parseInt(labelText)
+                        };
+                        
+                        this._showDetails(dayData);
+                        this._updateView(); // Refresh to show selection
+                    });
                 }
 
                 this._gridWidget.add_child(btn);
@@ -299,11 +378,28 @@ const NepaliCalendarIndicator = GObject.registerClass(
             let eventText = dayData.event || 'No events';
             let tithiText = dayData.tithi || '';
 
-            // Fix: Use get_label() for buttons
+            // Get month and year for display
             let monthName = this._monthBtn.get_label();
             let year = this._yearBtn.get_label();
 
-            this._eventTitle.set_text(`${dayData.np} ${monthName} ${year}: ${eventText}`);
+            // Create the selected Nepali date
+            let selectedNepaliDate = {
+                year: this._currentYear,
+                month: this._currentMonthIndex + 1,
+                day: parseInt(dayData.np)
+            };
+
+            // Try to convert to English date (this is approximate since we don't have reverse conversion)
+            let englishDateText = '';
+            try {
+                // For now, show a note that this is a Nepali date
+                englishDateText = ` (${selectedNepaliDate.day}/${selectedNepaliDate.month}/${selectedNepaliDate.year} BS)`;
+            } catch (e) {
+                log(`[NepaliCalendar] Date conversion error: ${e}`);
+                englishDateText = ' (BS)';
+            }
+
+            this._eventTitle.set_text(`${dayData.np} ${monthName} ${year}${englishDateText}: ${eventText}`);
             this._eventTithi.set_text(tithiText);
         }
     });

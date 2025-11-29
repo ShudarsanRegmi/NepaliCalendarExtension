@@ -1,3 +1,5 @@
+/* GNOME Shell Extension - Modern Nepali Calendar Design */
+
 .system-status-icon {
     icon-size: 16px;
 }
@@ -15,184 +17,253 @@
     margin: 0px;
 }
 
+/* Main Calendar Container - Modern Glass Design */
 .calendar-menu-box {
-    min-width: 380px;
-    max-width: 400px;
+    min-width: 320px;
+    max-width: 320px;
+    padding: 20px;
+    border-radius: 16px;
+    background-color: rgba(36, 11, 54, 0.95);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
+/* Header and Navigation - Clean Modern Design */
 .calendar-header {
-    padding: 10px 14px;
-    spacing: 12px;
+    padding: 0px 0px 20px 0px;
+    spacing: 8px;
 }
 
-/* Header Spacer */
 .header-spacer {
-    min-width: 15px;
+    min-width: 12px;
     background-color: transparent;
 }
 
-/* Month Navigation Container */
+/* Navigation Containers - Sleek Design */
 .month-nav-container {
-    spacing: 5px;
-    padding: 4px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    min-width: 145px;
-    max-width: 150px;
+    spacing: 4px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 12px;
+    min-width: 130px;
+    max-width: 130px;
 }
 
-/* Year Navigation Container */
 .year-nav-container {
-    spacing: 5px;
-    padding: 4px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    min-width: 115px;
-    max-width: 120px;
+    spacing: 4px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 12px;
+    min-width: 100px;
+    max-width: 100px;
 }
 
-/* Small Navigation Buttons */
+/* Navigation Buttons - Premium Feel */
 .nav-button-small {
-    min-width: 24px;
-    min-height: 24px;
-    padding: 4px 6px;
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.08);
-    font-size: 0.9em;
-    font-weight: bold;
-    transition-duration: 150ms;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 6px;
+    border-radius: 6px;
+    background-color: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    font-size: 14px;
+    font-weight: 600;
+    color: #FFD700;
     text-align: center;
+    transition-duration: 200ms;
 }
 
 .nav-button-small:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    transition-duration: 150ms;
+    background-color: rgba(255, 215, 0, 0.2);
+    border-color: rgba(255, 215, 0, 0.5);
+    transform: scale(1.05);
 }
 
 .nav-button-small:active {
-    background-color: rgba(255, 255, 255, 0.25);
+    background-color: rgba(255, 215, 0, 0.3);
+    transform: scale(0.95);
 }
 
-/* Compact Month Selector */
+/* Month and Year Selectors - Modern Typography */
 .calendar-month-selector-compact {
-    font-weight: bold;
-    font-size: 1em;
-    min-width: 75px;
-    max-width: 85px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    background-color: rgba(53, 132, 228, 0.15);
-    border: 1px solid rgba(53, 132, 228, 0.3);
-    transition-duration: 150ms;
+    font-weight: 600;
+    font-size: 15px;
+    min-width: 70px;
+    max-width: 70px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    color: #ffffff;
+    text-align: center;
+    transition-duration: 200ms;
     cursor: pointer;
 }
 
 .calendar-month-selector-compact:hover {
-    background-color: rgba(53, 132, 228, 0.25);
-    border: 1px solid rgba(53, 132, 228, 0.5);
-    transition-duration: 150ms;
+    background-color: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.4);
+    color: #FFD700;
+    transform: scale(1.02);
 }
 
-.calendar-month-selector-compact:active {
-    background-color: rgba(53, 132, 228, 0.35);
-}
-
-/* Compact Year Selector */
 .calendar-year-selector-compact {
-    font-weight: bold;
-    font-size: 0.95em;
-    min-width: 48px;
-    max-width: 58px;
-    padding: 6px 8px;
-    border-radius: 4px;
+    font-weight: 600;
+    font-size: 15px;
+    min-width: 50px;
+    max-width: 50px;
+    padding: 10px 6px;
+    border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    transition-duration: 150ms;
-    cursor: pointer;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    color: #ffffff;
     text-align: center;
+    transition-duration: 200ms;
+    cursor: pointer;
 }
 
 .calendar-year-selector-compact:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    transition-duration: 150ms;
+    background-color: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.4);
+    color: #FFD700;
+    transform: scale(1.02);
 }
 
-.calendar-year-selector-compact:active {
-    background-color: rgba(255, 255, 255, 0.25);
-}
-
+/* Calendar Grid and Day Headers - Clean Layout */
 .calendar-grid {
-    spacing: 5px;
-    padding: 12px;
+    spacing: 0px;
+    padding: 0px;
 }
 
 .calendar-day-header {
-    font-weight: bold;
-    color: #888;
+    font-weight: 600;
+    color: #ffffff;
     text-align: center;
-    font-size: 0.95em;
+    font-size: 11px;
     min-width: 36px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 6px;
-    border-radius: 3px;
+    max-width: 36px;
+    min-height: 24px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 4px 2px;
+    margin: 0px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Day Cells - Refined Modern Design */
 .calendar-day {
-    padding: 8px;
-    border-radius: 4px;
+    padding: 0px;
+    border-radius: 6px;
     min-width: 36px;
+    max-width: 36px;
     min-height: 36px;
+    max-height: 36px;
     text-align: center;
     vertical-align: middle;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: rgba(255, 255, 255, 0.05);
+    transition-duration: 150ms;
+    cursor: pointer;
+    margin: 0px;
 }
 
 .calendar-day:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 215, 0, 0.3);
+    transform: scale(1.02);
 }
 
 .calendar-day:active {
-    background-color: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.16);
+    transform: scale(0.98);
 }
 
 .calendar-day-label {
-    font-size: 1em;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
     text-align: center;
     vertical-align: middle;
 }
 
+/* Special Day States - Enhanced Visual Hierarchy */
 .calendar-day-today {
-    background-color: #3584e4;
-    color: #ffffff;
-    font-weight: bold;
-    border: 1px solid #5aa3f0;
+    background-color: #FFD700;
+    color: #2a1a00;
+    font-weight: 700;
+    border: 2px solid #FFD700;
 }
 
-.calendar-day-holiday {
-    color: #ff7b7b;
-    border: 1px solid rgba(255, 123, 123, 0.3);
+.calendar-day-today:hover {
+    background-color: #FFE55C;
+    transform: scale(1.08);
 }
 
 .calendar-day-selected {
-    border: 2px solid #3584e4;
-    background-color: rgba(53, 132, 228, 0.1);
+    background-color: #FFD700;
+    color: #2a1a00;
+    font-weight: 700;
+    border: 2px solid #FFE55C;
 }
 
+.calendar-day-selected:hover {
+    background-color: #FFE55C;
+    transform: scale(1.08);
+}
+
+.calendar-day-saturday {
+    color: #ff3333 !important;
+    font-weight: 700 !important;
+    border-color: rgba(255, 51, 51, 0.5) !important;
+}
+
+.calendar-day-saturday .calendar-day-label {
+    color: #ff3333 !important;
+    font-weight: 700 !important;
+}
+
+.calendar-day-saturday:hover {
+    background-color: rgba(255, 51, 51, 0.2) !important;
+}
+
+.calendar-day-holiday {
+    color: #ff9eb5;
+    font-weight: 600;
+}
+
+.calendar-day-holiday:hover {
+    background-color: rgba(255, 158, 181, 0.1);
+}
+
+/* Event Display - Modern Card Design */
 .event-box {
-    padding: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px 16px;
+    margin: 10px 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    transition-duration: 200ms;
+}
+
+.event-box:hover {
+    background-color: rgba(255, 215, 0, 0.12);
+    border-color: rgba(255, 215, 0, 0.4);
+    transform: translateY(-1px);
 }
 
 .event-title {
-    font-weight: bold;
-    font-size: 0.95em;
+    font-weight: 600;
+    font-size: 14px;
+    color: #FFD700;
+    margin-bottom: 4px;
 }
 
 .event-tithi {
-    color: #aaa;
-    font-size: 0.85em;
+    color: #e0e0e0;
+    font-size: 12px;
+    opacity: 0.85;
 }
