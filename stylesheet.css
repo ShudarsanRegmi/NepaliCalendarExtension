@@ -20,9 +20,9 @@
 /* Main Calendar Container - Modern Glass Design */
 .calendar-menu-box {
     /* wider to avoid truncation */
-    min-width: 320px;
-    max-width: 340px;
-    padding: 10px 14px;
+    min-width: 310px;
+    max-width: 330px;
+    padding: 10px 10px;
     border-radius: 14px;
     background-color: rgba(36, 11, 54, 0.95);
     border: 1px solid rgba(255, 215, 0, 0.18);
