@@ -330,7 +330,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             // Decorative bottom pattern
             let bottomDecor = new St.Label({
-                text: '࿈࿈࿈࿈࿈࿈࿈࿈࿈࿈',
+                text: '࿈࿈࿈࿈࿈࿈࿈࿈',
                 style_class: 'branding-decor-bottom',
                 x_align: Clutter.ActorAlign.CENTER
             });

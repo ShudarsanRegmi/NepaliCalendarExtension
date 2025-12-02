@@ -19,10 +19,10 @@
 
 /* Main Calendar Container - Modern Glass Design */
 .calendar-menu-box {
-    /* slightly wider to avoid truncation, but flexible */
-    min-width: 300px;
-    max-width: 320px;
-    padding: 10px 12px;
+    /* wider to avoid truncation */
+    min-width: 320px;
+    max-width: 340px;
+    padding: 10px 14px;
     border-radius: 14px;
     background-color: rgba(36, 11, 54, 0.95);
     border: 1px solid rgba(255, 215, 0, 0.18);
@@ -41,18 +41,19 @@
 }
 
 .branding-decor-top {
-    font-size: 10px;
+    font-size: 12px;
     color: #FFD700;
     text-align: center;
     margin-bottom: 2px;
-    letter-spacing: 2px;
+    letter-spacing: 4px;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.45);
+    min-width: 200px;
 }
 
 .branding-title-row {
-    spacing: 6px;
+    spacing: 8px;
     padding: 0px 0 2px 0;
-    align-items: center;
+    min-width: 280px;
 }
 
 .branding-side-decor {
@@ -62,11 +63,13 @@
 }
 
 .branding-main-title {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: #ffffff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 12px rgba(220, 38, 38, 0.25);
-    letter-spacing: 0.6px;
+    letter-spacing: 1px;
+    min-width: 160px;
+    text-align: center;
 }
 
 .branding-subtitle {
@@ -79,11 +82,12 @@
 }
 
 .branding-decor-bottom {
-    font-size: 6px;
+    font-size: 8px;
     color: rgba(255, 215, 0, 0.6);
     text-align: center;
     margin-top: 4px;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    min-width: 200px;
 }
 
 /* Decorative Divider */
@@ -215,8 +219,8 @@
     color: #ffffff;
     text-align: center;
     font-size: 11px;
-    min-width: 34px;
-    max-width: 34px;
+    min-width: 38px;
+    max-width: 38px;
     min-height: 24px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -231,10 +235,10 @@
 .calendar-day {
     padding: 0px;
     border-radius: 6px;
-    min-width: 34px;
-    max-width: 34px;
-    min-height: 34px;
-    max-height: 34px;
+    min-width: 38px;
+    max-width: 38px;
+    min-height: 36px;
+    max-height: 36px;
     text-align: center;
     vertical-align: middle;
     border: 1px solid rgba(255, 255, 255, 0.1);
