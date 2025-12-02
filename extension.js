@@ -248,8 +248,19 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 visible: false
             });
 
-            this._eventTitle = new St.Label({ style_class: 'event-title' });
-            this._eventTithi = new St.Label({ style_class: 'event-tithi' });
+            this._eventTitle = new St.Label({ 
+                style_class: 'event-title',
+                x_expand: true
+            });
+            this._eventTitle.clutter_text.set_line_wrap(true);
+            this._eventTitle.clutter_text.set_ellipsize(0); // Pango.EllipsizeMode.NONE
+            
+            this._eventTithi = new St.Label({ 
+                style_class: 'event-tithi',
+                x_expand: true
+            });
+            this._eventTithi.clutter_text.set_line_wrap(true);
+            this._eventTithi.clutter_text.set_ellipsize(0);
 
             this._eventBox.add_child(this._eventTitle);
             this._eventBox.add_child(this._eventTithi);
@@ -293,7 +304,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 text: 'नेपाली पात्रो',
                 style_class: 'branding-main-title',
                 x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: true
             });
             titleRow.add_child(mainTitle);
 
@@ -311,7 +323,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
             let subtitle = new St.Label({
                 text: 'Bikram Sambat Calendar',
                 style_class: 'branding-subtitle',
-                x_align: Clutter.ActorAlign.CENTER
+                x_align: Clutter.ActorAlign.CENTER,
+                x_expand: true
             });
             brandingBox.add_child(subtitle);
 
