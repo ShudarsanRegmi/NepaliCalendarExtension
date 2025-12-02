@@ -222,7 +222,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             this._gridWidget = new St.Widget({
                 layout_manager: this._grid,
-                style_class: 'calendar-grid'
+                style_class: 'calendar-grid',
+                x_align: Clutter.ActorAlign.CENTER,
+                x_expand: true
             });
 
             // Day Headers
@@ -245,7 +247,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._eventBox = new St.BoxLayout({
                 vertical: true,
                 style_class: 'event-box',
-                visible: false
+                visible: false,
+                x_align: Clutter.ActorAlign.CENTER,
+                x_expand: true
             });
 
             this._eventTitle = new St.Label({ 
@@ -439,7 +443,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         text: labelText,
                         style_class: 'calendar-day-label',
                         x_align: Clutter.ActorAlign.CENTER,
-                        y_align: Clutter.ActorAlign.CENTER
+                        y_align: Clutter.ActorAlign.CENTER,
+                        x_expand: true,
+                        y_expand: true
                     }));
 
                     btn.connect('clicked', () => {

@@ -220,13 +220,14 @@
     font-weight: 600;
     color: #ffffff;
     text-align: center;
-    font-size: 11px;
+    font-size: 10px;
     min-width: 38px;
     max-width: 38px;
-    min-height: 24px;
+    min-height: 20px;
+    max-height: 20px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 4px 2px;
+    letter-spacing: 0.3px;
+    padding: 4px 0px;
     margin: 1px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
@@ -242,7 +243,6 @@
     min-height: 36px;
     max-height: 36px;
     text-align: center;
-    vertical-align: middle;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(255, 255, 255, 0.05);
     transition-duration: 150ms;
@@ -326,6 +326,8 @@
     border-radius: 8px;
     border: 1px solid rgba(255, 215, 0, 0.18);
     transition-duration: 180ms;
+    min-width: 280px;
+    max-width: 280px;
 }
 
 .event-box:hover {
