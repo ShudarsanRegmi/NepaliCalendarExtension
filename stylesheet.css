@@ -19,76 +19,132 @@
 
 /* Main Calendar Container - Modern Glass Design */
 .calendar-menu-box {
-    min-width: 290px;
-    max-width: 290px;
-    padding: 16px 18px;
-    border-radius: 16px;
+    /* slightly wider to avoid truncation, but flexible */
+    min-width: 300px;
+    max-width: 320px;
+    padding: 10px 12px;
+    border-radius: 14px;
     background-color: rgba(36, 11, 54, 0.95);
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 215, 0, 0.18);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
+}
+
+/* ============================================
+   NEPALI BRANDING HEADER - Compact Design
+   ============================================ */
+
+.branding-header {
+    padding: 2px 4px 4px 4px;
+    margin-bottom: 6px;
+    background: linear-gradient(180deg, rgba(220, 38, 38, 0.1) 0%, rgba(36, 11, 54, 0) 100%);
+    border-radius: 10px;
+}
+
+.branding-decor-top {
+    font-size: 10px;
+    color: #FFD700;
+    text-align: center;
+    margin-bottom: 2px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.45);
+}
+
+.branding-title-row {
+    spacing: 6px;
+    padding: 0px 0 2px 0;
+    align-items: center;
+}
+
+.branding-side-decor {
+    font-size: 14px;
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.branding-main-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 12px rgba(220, 38, 38, 0.25);
+    letter-spacing: 0.6px;
+    white-space: normal; /* allow wrapping so title doesn't truncate */
+    overflow-wrap: anywhere;
+    line-height: 1.1;
+}
+
+.branding-subtitle {
+    font-size: 9px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    text-transform: none;
+    letter-spacing: 1px;
+    margin-top: 0px;
+}
+
+.branding-decor-bottom {
+    font-size: 6px;
+    color: rgba(255, 215, 0, 0.6);
+    text-align: center;
+    margin-top: 4px;
+    letter-spacing: 1px;
+}
+
+/* Decorative Divider */
+.calendar-divider {
+    height: 1px;
+    margin: 2px 0 6px 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.3) 25%, rgba(255, 215, 0, 0.45) 50%, rgba(255, 215, 0, 0.3) 75%, transparent 100%);
 }
 
 /* Header and Navigation - Clean Modern Design */
 .calendar-header {
-    padding: 0px 0px 12px 0px;
-    spacing: 8px;
+    padding: 0px 0px 4px 0px;
+    spacing: 2px;
+    align-items: center;
 }
 
+/* single header-spacer style; width controlled in JS when needed */
 .header-spacer {
-    min-width: 12px;
+    min-width: 6px;
     background-color: transparent;
 }
 
 /* Navigation Containers - Compact Design */
 .month-nav-container {
-    spacing: 2px;
-    padding: 4px 6px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.25);
+    spacing: 4px;
+    padding: 2px 6px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 215, 0, 0.18);
     border-radius: 8px;
-    min-width: 130px;
-    max-width: 130px;
-}
-
-.header-spacer {
-    min-width: 12px;
-    background-color: transparent;
-}
-
-/* Navigation Containers - Compact Design */
-.month-nav-container {
-    spacing: 2px;
-    padding: 4px 6px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 8px;
-    min-width: 130px;
-    max-width: 130px;
+    min-width: 0px; /* allow shrinking */
+    max-width: none;
+    align-items: center;
 }
 
 .year-nav-container {
-    spacing: 2px;
-    padding: 4px 6px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.25);
+    spacing: 4px;
+    padding: 2px 6px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 215, 0, 0.18);
     border-radius: 8px;
-    min-width: 100px;
-    max-width: 100px;
+    min-width: 0px; /* allow shrinking */
+    max-width: none;
+    align-items: center;
 }
 
 /* Navigation Buttons - Compact Feel */
 .nav-button-small {
-    min-width: 20px;
-    min-height: 20px;
-    padding: 2px;
+    min-width: 18px;
+    min-height: 18px;
+    padding: 2px 4px;
     border-radius: 4px;
-    background-color: rgba(255, 215, 0, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    background-color: rgba(255, 215, 0, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.25);
     font-size: 12px;
     font-weight: 600;
     color: #FFD700;
     text-align: center;
-    transition-duration: 200ms;
+    transition-duration: 150ms;
 }
 
 .nav-button-small:hover {
@@ -105,17 +161,20 @@
 /* Month and Year Selectors - Compact Typography */
 .calendar-month-selector-compact {
     font-weight: 600;
-    font-size: 13px;
-    min-width: 85px;
-    max-width: 85px;
-    padding: 6px 4px;
+    font-size: 12px;
+    min-width: 64px;
+    max-width: 160px; /* allow longer month names if needed */
+    padding: 4px 6px;
     border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 215, 0, 0.16);
     color: #ffffff;
     text-align: center;
-    transition-duration: 200ms;
+    transition-duration: 150ms;
     cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipses;
 }
 
 .calendar-month-selector-compact:hover {
@@ -127,17 +186,18 @@
 
 .calendar-year-selector-compact {
     font-weight: 600;
-    font-size: 13px;
-    min-width: 45px;
-    max-width: 45px;
-    padding: 6px 2px;
+    font-size: 12px;
+    min-width: 44px;
+    max-width: 80px;
+    padding: 4px 6px;
     border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 215, 0, 0.16);
     color: #ffffff;
     text-align: center;
-    transition-duration: 200ms;
+    transition-duration: 150ms;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .calendar-year-selector-compact:hover {
@@ -150,7 +210,7 @@
 /* Calendar Grid and Day Headers - Clean Layout */
 .calendar-grid {
     spacing: 2px;
-    padding: 4px 0px;
+    padding: 2px 0px 4px 0px;
 }
 
 .calendar-day-header {
@@ -257,12 +317,12 @@
 
 /* Event Display - Modern Card Design */
 .event-box {
-    padding: 12px 14px;
-    margin: 12px 0px 0px 0px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    transition-duration: 200ms;
+    padding: 8px 10px;
+    margin: 6px 0px 0px 0px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 215, 0, 0.18);
+    transition-duration: 180ms;
 }
 
 .event-box:hover {
@@ -273,13 +333,13 @@
 
 .event-title {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     color: #FFD700;
     margin-bottom: 4px;
 }
 
 .event-tithi {
     color: #e0e0e0;
-    font-size: 12px;
+    font-size: 11px;
     opacity: 0.85;
 }

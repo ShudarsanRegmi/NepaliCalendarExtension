@@ -60,8 +60,17 @@ const NepaliCalendarIndicator = GObject.registerClass(
             });
             this.menu.box.add_child(this._mainBox);
 
+            // Nepali Branding Header
+            this._buildBrandingHeader();
+
             // Header (Year/Month Navigation)
             this._buildHeader();
+
+            // Decorative divider
+            let divider = new St.Widget({
+                style_class: 'calendar-divider'
+            });
+            this._mainBox.add_child(divider);
 
             // Calendar Grid
             this._buildGrid();
@@ -112,7 +121,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
             // Spacer to separate month and year controls
             let spacer = new St.Widget({
                 style_class: 'header-spacer',
-                width: 25
+                width: 6
             });
             headerBox.add_child(spacer);
 
@@ -246,6 +255,75 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._eventBox.add_child(this._eventTithi);
 
             this._mainBox.add_child(this._eventBox);
+        }
+
+        _buildBrandingHeader() {
+            // Main branding container
+            let brandingBox = new St.BoxLayout({
+                vertical: true,
+                style_class: 'branding-header',
+                x_align: Clutter.ActorAlign.CENTER
+            });
+
+            // Decorative top border
+            let topDecor = new St.Label({
+                text: '༺ ࿇ ༻',
+                style_class: 'branding-decor-top',
+                x_align: Clutter.ActorAlign.CENTER
+            });
+            brandingBox.add_child(topDecor);
+
+            // Title row with flag
+            let titleRow = new St.BoxLayout({
+                vertical: false,
+                style_class: 'branding-title-row',
+                x_align: Clutter.ActorAlign.CENTER
+            });
+
+            // Left decorative element
+            let leftDecor = new St.Label({
+                text: '🪷',
+                style_class: 'branding-side-decor',
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            titleRow.add_child(leftDecor);
+
+            // Main title in Nepali
+            let mainTitle = new St.Label({
+                text: 'नेपाली पात्रो',
+                style_class: 'branding-main-title',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            titleRow.add_child(mainTitle);
+
+            // Right decorative element
+            let rightDecor = new St.Label({
+                text: '🪷',
+                style_class: 'branding-side-decor',
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            titleRow.add_child(rightDecor);
+
+            brandingBox.add_child(titleRow);
+
+            // Subtitle in English
+            let subtitle = new St.Label({
+                text: 'Bikram Sambat Calendar',
+                style_class: 'branding-subtitle',
+                x_align: Clutter.ActorAlign.CENTER
+            });
+            brandingBox.add_child(subtitle);
+
+            // Decorative bottom pattern
+            let bottomDecor = new St.Label({
+                text: '࿈࿈࿈࿈࿈࿈࿈࿈࿈࿈',
+                style_class: 'branding-decor-bottom',
+                x_align: Clutter.ActorAlign.CENTER
+            });
+            brandingBox.add_child(bottomDecor);
+
+            this._mainBox.add_child(brandingBox);
         }
 
         _loadYear(year) {
