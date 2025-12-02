@@ -79,6 +79,8 @@
     text-transform: none;
     letter-spacing: 0.5px;
     margin-top: 0px;
+    min-width: 200px;
+    text-align: center;
 }
 
 .branding-decor-bottom {
