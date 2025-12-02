@@ -10,6 +10,23 @@ const CalendarData = Me.imports.calendarData;
 const DateConverter = Me.imports.dateConverter;
 const _ = ExtensionUtils.gettext;
 
+// Helper function to convert Nepali numerals to Arabic numerals
+function nepaliToArabicNumeral(nepaliNum) {
+    if (!nepaliNum || nepaliNum === '') return NaN;
+    const nepaliDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+    let arabicStr = '';
+    for (let char of nepaliNum) {
+        let index = nepaliDigits.indexOf(char);
+        if (index !== -1) {
+            arabicStr += index.toString();
+        } else if (char >= '0' && char <= '9') {
+            // Already an Arabic numeral
+            arabicStr += char;
+        }
+    }
+    return arabicStr ? parseInt(arabicStr, 10) : NaN;
+}
+
 const NepaliCalendarIndicator = GObject.registerClass(
     class NepaliCalendarIndicator extends PanelMenu.Button {
         _init() {
@@ -423,13 +440,13 @@ const NepaliCalendarIndicator = GObject.registerClass(
                     const isToday = this._currentNepaliDate && 
                                    this._currentNepaliDate.year === this._currentYear &&
                                    this._currentNepaliDate.month === this._currentMonthIndex + 1 &&
-                                   this._currentNepaliDate.day === parseInt(labelText);
+                                   this._currentNepaliDate.day === nepaliToArabicNumeral(labelText);
 
                     // Check if this is the selected date
                     const isSelected = this._selectedNepaliDate &&
                                       this._selectedNepaliDate.year === this._currentYear &&
                                       this._selectedNepaliDate.month === this._currentMonthIndex + 1 &&
-                                      this._selectedNepaliDate.day === parseInt(labelText);
+                                      this._selectedNepaliDate.day === nepaliToArabicNumeral(labelText);
 
                     if (isToday) {
                         btn.add_style_class_name('calendar-day-today');
@@ -453,7 +470,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         this._selectedNepaliDate = {
                             year: this._currentYear,
                             month: this._currentMonthIndex + 1,
-                            day: parseInt(labelText)
+                            day: nepaliToArabicNumeral(labelText)
                         };
                         
                         this._showDetails(dayData);
@@ -480,10 +497,11 @@ const NepaliCalendarIndicator = GObject.registerClass(
             let year = this._yearBtn.get_label();
 
             // Create the selected Nepali date
+            let nepaliDay = nepaliToArabicNumeral(dayData.np);
             let selectedNepaliDate = {
                 year: this._currentYear,
                 month: this._currentMonthIndex + 1,
-                day: parseInt(dayData.np)
+                day: nepaliDay
             };
 
             // Try to convert to English date (this is approximate since we don't have reverse conversion)
