@@ -66,6 +66,7 @@ var DateConverter = class DateConverter {
                         year: nepaliYear,
                         month: monthIndex + 1,
                         day: this._nepaliToArabic(dayData.np),
+                        dayNp: dayData.np,
                         monthName: nepaliMonth,
                         formatted: `${nepaliMonth} ${dayData.np}, ${nepaliYear}`
                     };
@@ -90,6 +91,7 @@ var DateConverter = class DateConverter {
                             year: nepaliYear,
                             month: monthIndex + 1,
                             day: this._nepaliToArabic(dayData.np),
+                            dayNp: dayData.np,
                             monthName: monthName,
                             formatted: `${monthName} ${dayData.np}, ${nepaliYear}`
                         };

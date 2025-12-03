@@ -32,7 +32,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
         _init() {
             super._init(0.5, _('Nepali Calendar')); // 0.5 centers the button
 
-            // Create a centered container for the flag
+            // Create a centered container for the flag and date
             let flagContainer = new St.BoxLayout({
                 vertical: false,
                 x_align: Clutter.ActorAlign.CENTER,
@@ -47,6 +47,15 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 style_class: 'panel-flag-label'
             }));
 
+            // Add date label beside flag
+            this._panelDateLabel = new St.Label({
+                text: '',
+                y_align: Clutter.ActorAlign.CENTER,
+                x_align: Clutter.ActorAlign.CENTER,
+                style_class: 'panel-date-label'
+            });
+            flagContainer.add_child(this._panelDateLabel);
+
             this.add_child(flagContainer);
 
             this._calendarData = new CalendarData.CalendarData();
@@ -60,6 +69,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 this._currentYear = this._currentNepaliDate.year;
                 this._currentMonthIndex = this._currentNepaliDate.month - 1; // Convert to 0-based index
                 log(`[NepaliCalendar] Current Nepali Date: ${this._currentNepaliDate.formatted}`);
+                // Update panel date label
+                this._panelDateLabel.set_text(`${this._currentNepaliDate.dayNp}`);
             } else {
                 this._currentYear = 2074; // Fallback
                 this._currentMonthIndex = 0;
@@ -492,30 +503,41 @@ const NepaliCalendarIndicator = GObject.registerClass(
             let eventText = dayData.event || 'No events';
             let tithiText = dayData.tithi || '';
 
+            // Nepali month names mapping
+            const nepaliMonthNames = {
+                'Baishakh': 'बैशाख', 'Jestha': 'जेठ', 'Ashadh': 'असार',
+                'Shrawan': 'साउन', 'Bhadra': 'भदौ', 'Ashwin': 'असोज',
+                'Kartik': 'कार्तिक', 'Mangsir': 'मंसिर', 'Poush': 'पुस',
+                'Magh': 'माघ', 'Falgun': 'फागुन', 'Chaitra': 'चैत्र'
+            };
+
             // Get month and year for display
             let monthName = this._monthBtn.get_label();
             let year = this._yearBtn.get_label();
+            let nepaliMonth = nepaliMonthNames[monthName] || monthName;
+            let nepaliYear = this._arabicToNepaliNumeral(year);
 
-            // Create the selected Nepali date
-            let nepaliDay = nepaliToArabicNumeral(dayData.np);
-            let selectedNepaliDate = {
-                year: this._currentYear,
-                month: this._currentMonthIndex + 1,
-                day: nepaliDay
-            };
+            // Format: "१७ मंसिर २०८२" (Full Nepali)
+            let dateText = `${dayData.np} ${nepaliMonth} ${nepaliYear}`;
 
-            // Try to convert to English date (this is approximate since we don't have reverse conversion)
-            let englishDateText = '';
-            try {
-                // For now, show a note that this is a Nepali date
-                englishDateText = ` (${selectedNepaliDate.day}/${selectedNepaliDate.month}/${selectedNepaliDate.year} BS)`;
-            } catch (e) {
-                log(`[NepaliCalendar] Date conversion error: ${e}`);
-                englishDateText = ' (BS)';
+            this._eventTitle.set_text(dateText);
+            this._eventTithi.set_text(eventText);
+            
+            // Show tithi in a third line if available
+            if (tithiText) {
+                this._eventTithi.set_text(`${eventText}\n${tithiText}`);
             }
+        }
 
-            this._eventTitle.set_text(`${dayData.np} ${monthName} ${year}${englishDateText}: ${eventText}`);
-            this._eventTithi.set_text(tithiText);
+        // Helper function to convert Arabic numerals to Nepali numerals
+        _arabicToNepaliNumeral(numStr) {
+            const nepaliDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+            return numStr.toString().split('').map(char => {
+                if (char >= '0' && char <= '9') {
+                    return nepaliDigits[parseInt(char)];
+                }
+                return char;
+            }).join('');
         }
     });
 
