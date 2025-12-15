@@ -69,8 +69,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 this._currentYear = this._currentNepaliDate.year;
                 this._currentMonthIndex = this._currentNepaliDate.month - 1; // Convert to 0-based index
                 log(`[NepaliCalendar] Current Nepali Date: ${this._currentNepaliDate.formatted}`);
-                // Update panel date label
-                this._panelDateLabel.set_text(`${this._currentNepaliDate.dayNp}`);
+                // Update panel date label with full Nepali date
+                this._updatePanelDate();
             } else {
                 this._currentYear = 2074; // Fallback
                 this._currentMonthIndex = 0;
@@ -78,6 +78,71 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             this._buildUI();
             this._loadYear(this._currentYear);
+
+            // Reset to current date when menu opens
+            this.menu.connect('open-state-changed', (menu, isOpen) => {
+                if (isOpen) {
+                    this._resetToCurrentDate();
+                }
+            });
+        }
+
+        _updatePanelDate() {
+            if (this._currentNepaliDate) {
+                const nepaliMonthNames = {
+                    'Baishakh': 'बैशाख', 'Jestha': 'जेठ', 'Ashadh': 'असार',
+                    'Shrawan': 'साउन', 'Bhadra': 'भदौ', 'Ashwin': 'असोज',
+                    'Kartik': 'कार्तिक', 'Mangsir': 'मंसिर', 'Poush': 'पुस',
+                    'Magh': 'माघ', 'Falgun': 'फागुन', 'Chaitra': 'चैत्र'
+                };
+                let monthName = this._currentNepaliDate.monthName;
+                let nepaliMonth = nepaliMonthNames[monthName] || monthName;
+                let nepaliYear = this._arabicToNepaliNumeral(this._currentNepaliDate.year.toString());
+                // Full date with year: "१७ मंसिर २०८२"
+                this._panelDateLabel.set_text(`${this._currentNepaliDate.dayNp} ${nepaliMonth} ${nepaliYear}`);
+            }
+        }
+
+        _resetToCurrentDate() {
+            // Refresh current date
+            this._currentNepaliDate = this._dateConverter.getCurrentNepaliDate();
+            this._selectedNepaliDate = null;
+            
+            if (this._currentNepaliDate) {
+                this._currentYear = this._currentNepaliDate.year;
+                this._currentMonthIndex = this._currentNepaliDate.month - 1;
+                this._loadYear(this._currentYear);
+                this._updatePanelDate();
+                // Show today's event details
+                this._showTodayDetails();
+            } else {
+                // Hide event box if no current date
+                this._eventBox.hide();
+            }
+        }
+
+        _showTodayDetails() {
+            if (!this._yearData || !this._currentNepaliDate) {
+                this._eventBox.hide();
+                return;
+            }
+            
+            const months = Object.keys(this._yearData);
+            const monthName = months[this._currentMonthIndex];
+            const monthData = this._yearData[monthName];
+            
+            // Find today's data
+            for (const dayData of monthData) {
+                if (dayData.np && dayData.np !== '') {
+                    const dayNum = nepaliToArabicNumeral(dayData.np);
+                    if (dayNum === this._currentNepaliDate.day) {
+                        this._showDetails(dayData);
+                        return;
+                    }
+                }
+            }
+            
+            this._eventBox.hide();
         }
 
         _buildUI() {
@@ -287,6 +352,13 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._eventTitle.clutter_text.set_line_wrap(true);
             this._eventTitle.clutter_text.set_ellipsize(0); // Pango.EllipsizeMode.NONE
             
+            this._eventText = new St.Label({ 
+                style_class: 'event-text',
+                x_expand: true
+            });
+            this._eventText.clutter_text.set_line_wrap(true);
+            this._eventText.clutter_text.set_ellipsize(0);
+
             this._eventTithi = new St.Label({ 
                 style_class: 'event-tithi',
                 x_expand: true
@@ -295,6 +367,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._eventTithi.clutter_text.set_ellipsize(0);
 
             this._eventBox.add_child(this._eventTitle);
+            this._eventBox.add_child(this._eventText);
             this._eventBox.add_child(this._eventTithi);
 
             this._mainBox.add_child(this._eventBox);
@@ -421,20 +494,47 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 children[i].destroy();
             }
 
-            // Add days
-            let row = 1;
-            let col = 0;
+            // Day mapping
+            const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+            
+            // First pass: find the index of the last valid day
+            let lastValidIndex = -1;
+            for (let i = 0; i < monthData.length; i++) {
+                if (monthData[i].np && monthData[i].np !== '') {
+                    lastValidIndex = i;
+                }
+            }
+            
+            // Track row - start at row 1 (row 0 is headers)
+            let currentRow = 1;
 
-            monthData.forEach((dayData) => {
-                const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+            // Process entries only up to the last valid day
+            for (let index = 0; index <= lastValidIndex; index++) {
+                const dayData = monthData[index];
                 let dayCol = dayMap[dayData.day.toLowerCase()];
-
+                
+                // If we go back to Sunday (col 0) and not first entry, move to next row
+                if (dayCol === 0 && index > 0) {
+                    currentRow++;
+                }
+                
+                let labelText = dayData.np || '';
+                
+                // Create button (empty or with date)
                 let btn = new St.Button({
                     style_class: 'calendar-day',
-                    can_focus: true,
+                    can_focus: labelText ? true : false,
                     x_align: Clutter.ActorAlign.CENTER,
                     y_align: Clutter.ActorAlign.CENTER
                 });
+                
+                if (!labelText) {
+                    // Empty placeholder cell for first row
+                    btn.add_style_class_name('calendar-day-empty');
+                    this._gridWidget.add_child(btn);
+                    this._grid.attach(btn, dayCol, currentRow, 1, 1);
+                    continue;
+                }
 
                 if (dayData.holiday) {
                     btn.add_style_class_name('calendar-day-holiday');
@@ -445,57 +545,62 @@ const NepaliCalendarIndicator = GObject.registerClass(
                     btn.add_style_class_name('calendar-day-saturday');
                 }
 
-                let labelText = dayData.np || '';
-                if (labelText) {
-                    // Check if this is today's date
-                    const isToday = this._currentNepaliDate && 
-                                   this._currentNepaliDate.year === this._currentYear &&
-                                   this._currentNepaliDate.month === this._currentMonthIndex + 1 &&
-                                   this._currentNepaliDate.day === nepaliToArabicNumeral(labelText);
+                // Check if this is today's date
+                const isToday = this._currentNepaliDate && 
+                               this._currentNepaliDate.year === this._currentYear &&
+                               this._currentNepaliDate.month === this._currentMonthIndex + 1 &&
+                               this._currentNepaliDate.day === nepaliToArabicNumeral(labelText);
 
-                    // Check if this is the selected date
-                    const isSelected = this._selectedNepaliDate &&
-                                      this._selectedNepaliDate.year === this._currentYear &&
-                                      this._selectedNepaliDate.month === this._currentMonthIndex + 1 &&
-                                      this._selectedNepaliDate.day === nepaliToArabicNumeral(labelText);
+                // Check if this is the selected date
+                const isSelected = this._selectedNepaliDate &&
+                                  this._selectedNepaliDate.year === this._currentYear &&
+                                  this._selectedNepaliDate.month === this._currentMonthIndex + 1 &&
+                                  this._selectedNepaliDate.day === nepaliToArabicNumeral(labelText);
 
-                    if (isToday) {
+                // Check if user has selected a different date than today
+                const hasOtherSelection = this._selectedNepaliDate && 
+                                         !(this._currentNepaliDate &&
+                                           this._selectedNepaliDate.year === this._currentNepaliDate.year &&
+                                           this._selectedNepaliDate.month === this._currentNepaliDate.month &&
+                                           this._selectedNepaliDate.day === this._currentNepaliDate.day);
+
+                if (isToday) {
+                    if (hasOtherSelection) {
+                        // Mild styling for today when other date is selected
+                        btn.add_style_class_name('calendar-day-today-mild');
+                    } else {
                         btn.add_style_class_name('calendar-day-today');
                     }
-
-                    if (isSelected) {
-                        btn.add_style_class_name('calendar-day-selected');
-                    }
-
-                    btn.set_child(new St.Label({
-                        text: labelText,
-                        style_class: 'calendar-day-label',
-                        x_align: Clutter.ActorAlign.CENTER,
-                        y_align: Clutter.ActorAlign.CENTER,
-                        x_expand: true,
-                        y_expand: true
-                    }));
-
-                    btn.connect('clicked', () => {
-                        // Set selected date
-                        this._selectedNepaliDate = {
-                            year: this._currentYear,
-                            month: this._currentMonthIndex + 1,
-                            day: nepaliToArabicNumeral(labelText)
-                        };
-                        
-                        this._showDetails(dayData);
-                        this._updateView(); // Refresh to show selection
-                    });
                 }
+
+                if (isSelected && !isToday) {
+                    btn.add_style_class_name('calendar-day-selected');
+                }
+
+                btn.set_child(new St.Label({
+                    text: labelText,
+                    style_class: 'calendar-day-label',
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                    x_expand: true,
+                    y_expand: true
+                }));
+
+                btn.connect('clicked', () => {
+                    // Set selected date
+                    this._selectedNepaliDate = {
+                        year: this._currentYear,
+                        month: this._currentMonthIndex + 1,
+                        day: nepaliToArabicNumeral(labelText)
+                    };
+                    
+                    this._showDetails(dayData);
+                    this._updateView(); // Refresh to show selection
+                });
 
                 this._gridWidget.add_child(btn);
-                this._grid.attach(btn, dayCol, row, 1, 1);
-
-                if (dayCol === 6) {
-                    row++;
-                }
-            });
+                this._grid.attach(btn, dayCol, currentRow, 1, 1);
+            }
         }
 
         _showDetails(dayData) {
@@ -511,21 +616,68 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 'Magh': 'माघ', 'Falgun': 'फागुन', 'Chaitra': 'चैत्र'
             };
 
+            // English month names
+            const englishMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
             // Get month and year for display
             let monthName = this._monthBtn.get_label();
             let year = this._yearBtn.get_label();
             let nepaliMonth = nepaliMonthNames[monthName] || monthName;
             let nepaliYear = this._arabicToNepaliNumeral(year);
 
-            // Format: "१७ मंसिर २०८२" (Full Nepali)
-            let dateText = `${dayData.np} ${nepaliMonth} ${nepaliYear}`;
+            // Calculate full English date
+            let englishDay = dayData.en || '';
+            let englishDateStr = '';
+            if (englishDay) {
+                // Get the English date by finding the corresponding date
+                // We need to calculate the English month and year
+                // Nepali months roughly map: Baishakh=Apr-May, ..., Mangsir=Nov-Dec, etc.
+                const nepaliToEnglishMonthStart = {
+                    'Baishakh': { month: 3, yearOffset: 0 },   // April
+                    'Jestha': { month: 4, yearOffset: 0 },     // May
+                    'Ashadh': { month: 5, yearOffset: 0 },     // June
+                    'Shrawan': { month: 6, yearOffset: 0 },    // July
+                    'Bhadra': { month: 7, yearOffset: 0 },     // August
+                    'Ashwin': { month: 8, yearOffset: 0 },     // September
+                    'Kartik': { month: 9, yearOffset: 0 },     // October
+                    'Mangsir': { month: 10, yearOffset: 0 },   // November
+                    'Poush': { month: 11, yearOffset: 0 },     // December
+                    'Magh': { month: 0, yearOffset: 1 },       // January (next year)
+                    'Falgun': { month: 1, yearOffset: 1 },     // February
+                    'Chaitra': { month: 2, yearOffset: 1 }     // March
+                };
+                
+                let mapping = nepaliToEnglishMonthStart[monthName];
+                let englishDayNum = parseInt(englishDay);
+                let englishMonth = mapping ? mapping.month : 0;
+                let englishYear = parseInt(year) - 57 + (mapping ? mapping.yearOffset : 0);
+                
+                // If day number is small (1-15) and month mapping suggests mid-month start,
+                // the English month might have rolled over
+                if (englishDayNum <= 15 && ['Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 
+                    'Ashwin', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'].includes(monthName)) {
+                    // Check if we need to advance to next month
+                    // Nepali months start around 14-17 of English month
+                    englishMonth = (englishMonth + 1) % 12;
+                    if (englishMonth === 0) englishYear++;
+                }
+                
+                englishDateStr = ` / ${englishDay} ${englishMonthNames[englishMonth]} ${englishYear}`;
+            }
+
+            // Format: "१७ मंसिर २०८२ / 3 Dec 2025" (Nepali / English)
+            let dateText = `${dayData.np} ${nepaliMonth} ${nepaliYear}${englishDateStr}`;
 
             this._eventTitle.set_text(dateText);
-            this._eventTithi.set_text(eventText);
+            this._eventText.set_text(eventText);
+            this._eventTithi.set_text(tithiText);
             
-            // Show tithi in a third line if available
+            // Hide tithi label if no tithi
             if (tithiText) {
-                this._eventTithi.set_text(`${eventText}\n${tithiText}`);
+                this._eventTithi.show();
+            } else {
+                this._eventTithi.hide();
             }
         }
 

@@ -268,6 +268,19 @@
     transform: scale(0.98);
 }
 
+/* Empty day cells (placeholder for first row) */
+.calendar-day-empty {
+    background-color: transparent;
+    border-color: transparent;
+    cursor: default;
+}
+
+.calendar-day-empty:hover {
+    background-color: transparent;
+    border-color: transparent;
+    transform: none;
+}
+
 .calendar-day-label {
     font-size: 16px;
     font-weight: 500;
@@ -290,6 +303,23 @@
 
 .calendar-day-today:hover {
     background-color: #FFE55C;
+    transform: scale(1.08);
+}
+
+/* Mild today styling when another date is selected */
+.calendar-day-today-mild {
+    background-color: transparent;
+    font-weight: 700;
+    border: 2px solid #FFD700;
+}
+
+.calendar-day-today-mild .calendar-day-label {
+    color: #FFD700 !important;
+    font-weight: 700 !important;
+}
+
+.calendar-day-today-mild:hover {
+    background-color: rgba(255, 215, 0, 0.2);
     transform: scale(1.08);
 }
 
@@ -358,6 +388,12 @@
     font-size: 14px;
     color: #FFD700;
     margin-bottom: 6px;
+}
+
+.event-text {
+    font-size: 12px;
+    color: #ffffff;
+    margin-bottom: 4px;
 }
 
 .event-tithi {
