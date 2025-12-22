@@ -38,6 +38,11 @@ var DateConverter = class DateConverter {
         const englishYear = englishDate.getFullYear();
         const englishMonth = englishDate.getMonth(); // 0-11
         const englishDay = englishDate.getDate().toString();
+        const englishDayOfWeek = englishDate.getDay(); // 0=Sun, 6=Sat
+        
+        // Map day of week to the format in API
+        const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        const expectedDayName = dayNames[englishDayOfWeek];
         
         // Calculate approximate Nepali year (Nepali year is ~56-57 years ahead)
         // Nepali new year starts mid-April, so before April we're in previous Nepali year
@@ -58,9 +63,9 @@ var DateConverter = class DateConverter {
             const monthData = yearData[nepaliMonth];
             if (!monthData) continue;
             
-            // Search for the English day in this month's data
+            // Search for the English day in this month's data - must match both date AND day of week
             for (const dayData of monthData) {
-                if (dayData.en === englishDay && dayData.np !== '') {
+                if (dayData.en === englishDay && dayData.np !== '' && dayData.day === expectedDayName) {
                     const monthIndex = this.monthNames.indexOf(nepaliMonth);
                     return {
                         year: nepaliYear,
@@ -74,7 +79,7 @@ var DateConverter = class DateConverter {
             }
         }
         
-        // Fallback: try adjacent years if not found
+        // Fallback: try adjacent years if not found (also validate day of week)
         for (let yearOffset = -1; yearOffset <= 1; yearOffset++) {
             const nepaliYear = baseNepaliYear + yearOffset;
             const yearData = this._calendarData.getYearData(nepaliYear);
@@ -85,7 +90,7 @@ var DateConverter = class DateConverter {
                 if (!monthData) continue;
                 
                 for (const dayData of monthData) {
-                    if (dayData.en === englishDay && dayData.np !== '') {
+                    if (dayData.en === englishDay && dayData.np !== '' && dayData.day === expectedDayName) {
                         const monthIndex = this.monthNames.indexOf(monthName);
                         return {
                             year: nepaliYear,
