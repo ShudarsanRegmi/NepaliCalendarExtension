@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# HTML test/reference files (scraper outputs)
+*.html
+
+# Backup files
+*.bak
+*.backup
+
+# Editor files
+.vscode/
+.idea/
+*.code-workspace
+
+# Log files
+*.log
+
+# Test scripts (optional - remove this line if you want to track them)
+test-*.sh
+logs.sh
+
+# Old/duplicate files
+datecnovert.js
+
+# Build artifacts (if any)
+*.zip
+*.shell-extension.zip
