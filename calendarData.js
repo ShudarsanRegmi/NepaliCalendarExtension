@@ -1,11 +1,10 @@
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
-var CalendarData = class CalendarData {
-    constructor() {
-        this._apiPath = GLib.build_filenamev([Me.path, 'api']);
+export class CalendarData {
+    constructor(extension) {
+        this._extension = extension;
+        this._apiPath = GLib.build_filenamev([this._extension.path, 'api']);
         this._cache = {};
     }
 
@@ -61,4 +60,4 @@ var CalendarData = class CalendarData {
             return null;
         }
     }
-};
+}

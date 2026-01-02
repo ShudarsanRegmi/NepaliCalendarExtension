@@ -1,14 +1,13 @@
-const GObject = imports.gi.GObject;
-const St = imports.gi.St;
-const Clutter = imports.gi.Clutter;
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const CalendarData = Me.imports.calendarData;
-const DateConverter = Me.imports.dateConverter;
-const _ = ExtensionUtils.gettext;
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import {CalendarData} from './calendarData.js';
+import {DateConverter} from './dateConverter.js';
 
 // Helper function to convert Nepali numerals to Arabic numerals
 function nepaliToArabicNumeral(nepaliNum) {
@@ -29,8 +28,10 @@ function nepaliToArabicNumeral(nepaliNum) {
 
 const NepaliCalendarIndicator = GObject.registerClass(
     class NepaliCalendarIndicator extends PanelMenu.Button {
-        _init() {
+        _init(extension) {
             super._init(0.5, _('Nepali Calendar')); // 0.5 centers the button
+
+            this._extension = extension;
 
             // Create a centered container for the flag and date
             let flagContainer = new St.BoxLayout({
@@ -58,8 +59,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             this.add_child(flagContainer);
 
-            this._calendarData = new CalendarData.CalendarData();
-            this._dateConverter = new DateConverter.DateConverter();
+            this._calendarData = new CalendarData(this._extension);
+            this._dateConverter = new DateConverter(this._extension);
             
             // Get current Nepali date and set it as default
             this._currentNepaliDate = this._dateConverter.getCurrentNepaliDate();
@@ -693,15 +694,11 @@ const NepaliCalendarIndicator = GObject.registerClass(
         }
     });
 
-class Extension {
-    constructor(uuid) {
-        this._uuid = uuid;
-    }
-
+export default class NepaliCalendarExtension extends Extension {
     enable() {
-        log('NepaliCalendar: Enabling extension version with Year Selector');
-        this._indicator = new NepaliCalendarIndicator();
-        Main.panel.addToStatusArea(this._uuid, this._indicator, 0, 'center');
+        log('NepaliCalendar: Enabling extension for GNOME 45+');
+        this._indicator = new NepaliCalendarIndicator(this);
+        Main.panel.addToStatusArea(this.uuid, this._indicator, 0, 'center');
     }
 
     disable() {
@@ -709,10 +706,6 @@ class Extension {
             this._indicator.destroy();
             this._indicator = null;
         }
+        log('NepaliCalendar: Disabled');
     }
-}
-
-function init(meta) {
-    ExtensionUtils.initTranslations();
-    return new Extension(meta.uuid);
 }

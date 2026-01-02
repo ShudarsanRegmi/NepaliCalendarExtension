@@ -1,10 +1,9 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const CalendarData = Me.imports.calendarData;
+import {CalendarData} from './calendarData.js';
 
-var DateConverter = class DateConverter {
-    constructor() {
-        this._calendarData = new CalendarData.CalendarData();
+export class DateConverter {
+    constructor(extension) {
+        this._extension = extension;
+        this._calendarData = new CalendarData(this._extension);
         
         this.monthNames = [
             'Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 'Ashwin',
@@ -141,4 +140,4 @@ var DateConverter = class DateConverter {
     getDayOfWeek(englishDate) {
         return englishDate.getDay();
     }
-};
+}
