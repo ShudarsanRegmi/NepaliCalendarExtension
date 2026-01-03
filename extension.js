@@ -32,6 +32,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
             super._init(0.5, _('Nepali Calendar')); // 0.5 centers the button
 
             this._extension = extension;
+            this._signalConnections = [];
+            this._gridSignalConnections = [];
 
             // Create a centered container for the flag and date
             let flagContainer = new St.BoxLayout({
@@ -69,7 +71,6 @@ const NepaliCalendarIndicator = GObject.registerClass(
             if (this._currentNepaliDate) {
                 this._currentYear = this._currentNepaliDate.year;
                 this._currentMonthIndex = this._currentNepaliDate.month - 1; // Convert to 0-based index
-                log(`[NepaliCalendar] Current Nepali Date: ${this._currentNepaliDate.formatted}`);
                 // Update panel date label with full Nepali date
                 this._updatePanelDate();
             } else {
@@ -81,11 +82,12 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._loadYear(this._currentYear);
 
             // Reset to current date when menu opens
-            this.menu.connect('open-state-changed', (menu, isOpen) => {
+            const menuSignalId = this.menu.connect('open-state-changed', (menu, isOpen) => {
                 if (isOpen) {
                     this._resetToCurrentDate();
                 }
             });
+            this._signalConnections.push({ object: this.menu, id: menuSignalId });
         }
 
         _updatePanelDate() {
@@ -191,7 +193,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 label: '<',
                 style_class: 'nav-button nav-button-small'
             });
-            prevMonthBtn.connect('clicked', () => this._changeMonth(-1));
+            const prevMonthSignalId = prevMonthBtn.connect('clicked', () => this._changeMonth(-1));
+            this._signalConnections.push({ object: prevMonthBtn, id: prevMonthSignalId });
             monthNavBox.add_child(prevMonthBtn);
 
             // Month Button (smaller and compact)
@@ -199,7 +202,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 label: 'Loading...',
                 style_class: 'calendar-month-selector-compact'
             });
-            this._monthBtn.connect('clicked', () => this._cycleMonth());
+            const monthBtnSignalId = this._monthBtn.connect('clicked', () => this._cycleMonth());
+            this._signalConnections.push({ object: this._monthBtn, id: monthBtnSignalId });
             monthNavBox.add_child(this._monthBtn);
 
             // Next Month Button
@@ -207,7 +211,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 label: '>',
                 style_class: 'nav-button nav-button-small'
             });
-            nextMonthBtn.connect('clicked', () => this._changeMonth(1));
+            const nextMonthSignalId = nextMonthBtn.connect('clicked', () => this._changeMonth(1));
+            this._signalConnections.push({ object: nextMonthBtn, id: nextMonthSignalId });
             monthNavBox.add_child(nextMonthBtn);
 
             headerBox.add_child(monthNavBox);
@@ -230,7 +235,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 label: '<',
                 style_class: 'nav-button nav-button-small'
             });
-            prevYearBtn.connect('clicked', () => this._changeYear(-1));
+            const prevYearSignalId = prevYearBtn.connect('clicked', () => this._changeYear(-1));
+            this._signalConnections.push({ object: prevYearBtn, id: prevYearSignalId });
             yearNavBox.add_child(prevYearBtn);
 
             // Year Button (smaller and compact)
@@ -238,7 +244,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 label: 'Year',
                 style_class: 'calendar-year-selector-compact'
             });
-            this._yearBtn.connect('clicked', () => this._cycleYear());
+            const yearBtnSignalId = this._yearBtn.connect('clicked', () => this._cycleYear());
+            this._signalConnections.push({ object: this._yearBtn, id: yearBtnSignalId });
             yearNavBox.add_child(this._yearBtn);
 
             // Next Year Button
@@ -246,7 +253,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 label: '>',
                 style_class: 'nav-button nav-button-small'
             });
-            nextYearBtn.connect('clicked', () => this._changeYear(1));
+            const nextYearSignalId = nextYearBtn.connect('clicked', () => this._changeYear(1));
+            this._signalConnections.push({ object: nextYearBtn, id: nextYearSignalId });
             yearNavBox.add_child(nextYearBtn);
 
             headerBox.add_child(yearNavBox);
@@ -489,6 +497,14 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._monthBtn.set_label(monthName);
             this._yearBtn.set_label(this._currentYear.toString());
 
+            // Disconnect all grid signal connections before clearing
+            this._gridSignalConnections.forEach(conn => {
+                if (conn.object && conn.id) {
+                    conn.object.disconnect(conn.id);
+                }
+            });
+            this._gridSignalConnections = [];
+
             // Clear previous days (keep headers)
             let children = this._gridWidget.get_children();
             for (let i = 7; i < children.length; i++) {
@@ -587,7 +603,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                     y_expand: true
                 }));
 
-                btn.connect('clicked', () => {
+                const dayBtnSignalId = btn.connect('clicked', () => {
                     // Set selected date
                     this._selectedNepaliDate = {
                         year: this._currentYear,
@@ -598,6 +614,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                     this._showDetails(dayData);
                     this._updateView(); // Refresh to show selection
                 });
+                this._gridSignalConnections.push({ object: btn, id: dayBtnSignalId });
 
                 this._gridWidget.add_child(btn);
                 this._grid.attach(btn, dayCol, currentRow, 1, 1);
@@ -692,20 +709,47 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 return char;
             }).join('');
         }
+
+        // Cleanup method to disconnect all signals and destroy objects
+        cleanup() {
+            // Disconnect all grid signals
+            this._gridSignalConnections.forEach(conn => {
+                if (conn.object && conn.id) {
+                    conn.object.disconnect(conn.id);
+                }
+            });
+            this._gridSignalConnections = [];
+
+            // Disconnect all permanent signals
+            this._signalConnections.forEach(conn => {
+                if (conn.object && conn.id) {
+                    conn.object.disconnect(conn.id);
+                }
+            });
+            this._signalConnections = [];
+
+            // Cleanup data objects
+            if (this._calendarData) {
+                this._calendarData = null;
+            }
+
+            if (this._dateConverter) {
+                this._dateConverter = null;
+            }
+        }
     });
 
 export default class NepaliCalendarExtension extends Extension {
     enable() {
-        log('NepaliCalendar: Enabling extension for GNOME 45+');
         this._indicator = new NepaliCalendarIndicator(this);
         Main.panel.addToStatusArea(this.uuid, this._indicator, 0, 'center');
     }
 
     disable() {
         if (this._indicator) {
+            this._indicator.cleanup();
             this._indicator.destroy();
             this._indicator = null;
         }
-        log('NepaliCalendar: Disabled');
     }
 }
