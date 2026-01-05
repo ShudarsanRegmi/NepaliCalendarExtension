@@ -8,6 +8,9 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const CalendarData = Me.imports.calendarData;
 const DateConverter = Me.imports.dateConverter;
+const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
+const Soup = imports.gi.Soup;
 const _ = ExtensionUtils.gettext;
 
 // Helper function to convert Nepali numerals to Arabic numerals
@@ -34,6 +37,10 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             this._signalConnections = [];
             this._gridSignalConnections = [];
+            
+            // Track update state
+            this._isUpdating = false;
+            this._updateProgress = '';
 
             // Create a centered container for the flag and date
             let flagContainer = new St.BoxLayout({
@@ -60,6 +67,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
             flagContainer.add_child(this._panelDateLabel);
 
             this.add_child(flagContainer);
+
+            // Add right-click context menu to panel button
+            this._buildContextMenu();
 
             this._calendarData = new CalendarData.CalendarData();
             this._dateConverter = new DateConverter.DateConverter();
@@ -103,6 +113,33 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 let nepaliYear = this._arabicToNepaliNumeral(this._currentNepaliDate.year.toString());
                 // Full date with year: "१७ मंसिर २०८२"
                 this._panelDateLabel.set_text(`${this._currentNepaliDate.dayNp} ${nepaliMonth} ${nepaliYear}`);
+            }
+        }
+
+        _buildContextMenu() {
+            // Add "Update Calendar Data" option to the right-click menu
+            this._updateMenuItem = new PopupMenu.PopupMenuItem('Update Calendar Data');
+            const updateMenuSignalId = this._updateMenuItem.connect('activate', () => {
+                this._updateCalendarData();
+            });
+            this._signalConnections.push({ object: this._updateMenuItem, id: updateMenuSignalId });
+            this.menu.addMenuItem(this._updateMenuItem);
+            
+            // Add a separator
+            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            
+            // Add status label (hidden initially)
+            this._statusMenuItem = new PopupMenu.PopupMenuItem('', { reactive: false });
+            this._statusMenuItem.actor.hide();
+            this.menu.addMenuItem(this._statusMenuItem);
+        }
+
+        _updateStatusDisplay(message) {
+            if (message) {
+                this._statusMenuItem.label.set_text(message);
+                this._statusMenuItem.actor.show();
+            } else {
+                this._statusMenuItem.actor.hide();
             }
         }
 
@@ -708,6 +745,205 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 }
                 return char;
             }).join('');
+        }
+
+        // Method to update calendar data from GitHub
+        _updateCalendarData() {
+            if (this._isUpdating) {
+                Main.notify('Nepali Calendar', 'Update already in progress...');
+                return;
+            }
+            
+            this._isUpdating = true;
+            this._updateStatusDisplay('🔄 Starting update...');
+            this._updateMenuItem.setSensitive(false);
+            
+            // GitHub raw URL base
+            const githubBaseUrl = 'https://raw.githubusercontent.com/ShudarsanRegmi/NepaliCalendarExtension/refs/heads/main/api/';
+            
+            // Years to download (1970-2089)
+            const startYear = 1970;
+            const endYear = 2089;
+            
+            // Get the api directory path
+            const apiDirPath = GLib.build_filenamev([Me.path, 'api']);
+            const apiDir = Gio.File.new_for_path(apiDirPath);
+            
+            // Create temporary directory for downloads
+            const tempDirPath = GLib.build_filenamev([GLib.get_tmp_dir(), 'nepali-calendar-update']);
+            const tempDir = Gio.File.new_for_path(tempDirPath);
+            
+            // Ensure temp directory exists
+            if (!tempDir.query_exists(null)) {
+                tempDir.make_directory_with_parents(null);
+            }
+
+            // Initialize Soup session for HTTP requests
+            let session;
+            if (Soup.Session.prototype.hasOwnProperty('new')) {
+                session = new Soup.Session();
+            } else {
+                session = Soup.Session.new();
+            }
+            
+            let successCount = 0;
+            let failCount = 0;
+            let totalFiles = endYear - startYear + 1;
+            let completedFiles = 0;
+
+            // Function to download a single file
+            const downloadFile = (year) => {
+                return new Promise((resolve, reject) => {
+                    const url = githubBaseUrl + year + '.json';
+                    const message = Soup.Message.new('GET', url);
+                    
+                    if (!message) {
+                        reject(new Error(`Failed to create request for ${year}`));
+                        return;
+                    }
+
+                    // For Soup 2.x (GNOME 42-44)
+                    if (Soup.Session.prototype.hasOwnProperty('queue_message')) {
+                        session.queue_message(message, (sess, msg) => {
+                            if (msg.status_code === 200) {
+                                try {
+                                    const tempFilePath = GLib.build_filenamev([tempDirPath, year + '.json']);
+                                    const tempFile = Gio.File.new_for_path(tempFilePath);
+                                    
+                                    // Get response body data
+                                    let data;
+                                    if (msg.response_body && msg.response_body.data) {
+                                        data = msg.response_body.data;
+                                    } else if (msg.response_body && msg.response_body.flatten) {
+                                        data = msg.response_body.flatten().get_as_bytes();
+                                    }
+                                    
+                                    // Write to temp file
+                                    tempFile.replace_contents(
+                                        data,
+                                        null,
+                                        false,
+                                        Gio.FileCreateFlags.REPLACE_DESTINATION,
+                                        null
+                                    );
+                                    
+                                    resolve(year);
+                                } catch (e) {
+                                    reject(new Error(`Failed to save ${year}: ${e.message}`));
+                                }
+                            } else {
+                                reject(new Error(`HTTP ${msg.status_code} for ${year}`));
+                            }
+                        });
+                    } else {
+                        // For Soup 3.x (GNOME 45+) - fallback
+                        reject(new Error('Soup 3.x not fully implemented yet'));
+                    }
+                });
+            };
+
+            // Download all files sequentially (to avoid overwhelming the server)
+            const downloadAllFiles = async () => {
+                for (let year = startYear; year <= endYear; year++) {
+                    try {
+                        await downloadFile(year);
+                        successCount++;
+                    } catch (e) {
+                        log(`Failed to download ${year}.json: ${e.message}`);
+                        failCount++;
+                    }
+                    
+                    completedFiles++;
+                    
+                    // Update status in menu every 10 files
+                    if (completedFiles % 10 === 0 || completedFiles === totalFiles) {
+                        this._updateStatusDisplay(`🔄 Downloading: ${completedFiles}/${totalFiles} files`);
+                    }
+                }
+                
+                // If we successfully downloaded files, replace the api directory
+                if (successCount > 0) {
+                    try {
+                        // Copy all downloaded files to api directory
+                        for (let year = startYear; year <= endYear; year++) {
+                            const tempFilePath = GLib.build_filenamev([tempDirPath, year + '.json']);
+                            const tempFile = Gio.File.new_for_path(tempFilePath);
+                            
+                            if (tempFile.query_exists(null)) {
+                                const destFilePath = GLib.build_filenamev([apiDirPath, year + '.json']);
+                                const destFile = Gio.File.new_for_path(destFilePath);
+                                
+                                // Copy file (replace if exists)
+                                tempFile.copy(
+                                    destFile,
+                                    Gio.FileCopyFlags.OVERWRITE,
+                                    null,
+                                    null
+                                );
+                            }
+                        }
+                        
+                        // Clean up temp directory
+                        try {
+                            const tempDirEnum = tempDir.enumerate_children(
+                                'standard::name',
+                                Gio.FileQueryInfoFlags.NONE,
+                                null
+                            );
+                            
+                            let fileInfo;
+                            while ((fileInfo = tempDirEnum.next_file(null)) !== null) {
+                                const fileName = fileInfo.get_name();
+                                const tempFile = tempDir.get_child(fileName);
+                                tempFile.delete(null);
+                            }
+                            tempDir.delete(null);
+                        } catch (e) {
+                            log('Failed to clean up temp directory: ' + e.message);
+                        }
+                        
+                        // Reload calendar data
+                        this._calendarData = new CalendarData.CalendarData();
+                        this._dateConverter = new DateConverter.DateConverter();
+                        
+                        // Reload current year
+                        this._loadYear(this._currentYear);
+                        
+                        this._updateStatusDisplay(`✅ Update complete! ${successCount} files updated.${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+                        this._isUpdating = false;
+                        this._updateMenuItem.setSensitive(true);
+                        
+                        Main.notify('Nepali Calendar', 
+                            `Update complete! Successfully updated ${successCount} files.${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+                    } catch (e) {
+                        this._updateStatusDisplay(`❌ Error: ${e.message}`);
+                        this._isUpdating = false;
+                        this._updateMenuItem.setSensitive(true);
+                        
+                        Main.notify('Nepali Calendar', 
+                            `Error updating calendar data: ${e.message}`);
+                        log('Calendar update error: ' + e.message);
+                    }
+                } else {
+                    this._updateStatusDisplay('❌ Update failed. Could not download data.');
+                    this._isUpdating = false;
+                    this._updateMenuItem.setSensitive(true);
+                    
+                    Main.notify('Nepali Calendar', 
+                        'Update failed. Could not download calendar data.');
+                }
+            };
+            
+            // Start the download process
+            downloadAllFiles().catch(e => {
+                this._updateStatusDisplay(`❌ Error: ${e.message}`);
+                this._isUpdating = false;
+                this._updateMenuItem.setSensitive(true);
+                
+                Main.notify('Nepali Calendar', 
+                    `Update failed: ${e.message}`);
+                log('Calendar update error: ' + e.message);
+            });
         }
 
         // Cleanup method to disconnect all signals and destroy objects
