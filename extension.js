@@ -803,17 +803,32 @@ const NepaliCalendarIndicator = GObject.registerClass(
             const githubApiUrl = 'https://api.github.com/repos/ShudarsanRegmi/NepaliCalendarExtension/contents/api';
             const githubRawBaseUrl = 'https://raw.githubusercontent.com/ShudarsanRegmi/NepaliCalendarExtension/refs/heads/main/api/';
             
-            // Get the api directory path
+            // Get the api directory paths
             const apiDirPath = GLib.build_filenamev([Me.path, 'api']);
             const apiDir = Gio.File.new_for_path(apiDirPath);
             
-            // Create temporary directory for downloads
-            const tempDirPath = GLib.build_filenamev([GLib.get_tmp_dir(), 'nepali-calendar-update']);
-            const tempDir = Gio.File.new_for_path(tempDirPath);
+            const apiTempDirPath = GLib.build_filenamev([Me.path, 'api-temp']);
+            const apiTempDir = Gio.File.new_for_path(apiTempDirPath);
             
-            // Ensure temp directory exists
-            if (!tempDir.query_exists(null)) {
-                tempDir.make_directory_with_parents(null);
+            // Create api-temp directory for downloads (delete if exists)
+            if (apiTempDir.query_exists(null)) {
+                // Delete existing api-temp directory
+                try {
+                    this._deleteDirectory(apiTempDir);
+                } catch (e) {
+                    log('Failed to delete existing api-temp: ' + e.message);
+                }
+            }
+            
+            // Create fresh api-temp directory
+            try {
+                apiTempDir.make_directory_with_parents(null);
+            } catch (e) {
+                this._updateStatusDisplay('Error: Failed to create api-temp directory');
+                this._isUpdating = false;
+                this._updateMenuItem.setSensitive(true);
+                Main.notify('Nepali Calendar', 'Failed to create temporary directory');
+                return;
             }
 
             // Initialize Soup session for HTTP requests
@@ -886,7 +901,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         session.queue_message(message, (sess, msg) => {
                             if (msg.status_code === 200) {
                                 try {
-                                    const tempFilePath = GLib.build_filenamev([tempDirPath, fileName + '.json']);
+                                    const tempFilePath = GLib.build_filenamev([apiTempDirPath, fileName + '.json']);
                                     const tempFile = Gio.File.new_for_path(tempFilePath);
                                     
                                     // Get response body data
@@ -897,7 +912,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                                         data = msg.response_body.flatten().get_as_bytes();
                                     }
                                     
-                                    // Write to temp file
+                                    // Write to api-temp file
                                     tempFile.replace_contents(
                                         data,
                                         null,
@@ -955,45 +970,20 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 
                 // If we successfully downloaded files, replace the api directory
                 if (successCount > 0) {
-                    this._updateStatusDisplay('Copying files to extension directory...');
+                    this._updateStatusDisplay('Replacing api directory...');
                     try {
-                        // Copy all downloaded files to api directory
-                        for (let fileName of fileList) {
-                            const tempFilePath = GLib.build_filenamev([tempDirPath, fileName + '.json']);
-                            const tempFile = Gio.File.new_for_path(tempFilePath);
-                            
-                            if (tempFile.query_exists(null)) {
-                                const destFilePath = GLib.build_filenamev([apiDirPath, fileName + '.json']);
-                                const destFile = Gio.File.new_for_path(destFilePath);
-                                
-                                // Copy file (replace if exists)
-                                tempFile.copy(
-                                    destFile,
-                                    Gio.FileCopyFlags.OVERWRITE,
-                                    null,
-                                    null
-                                );
-                            }
+                        // Delete old api directory
+                        if (apiDir.query_exists(null)) {
+                            this._deleteDirectory(apiDir);
                         }
                         
-                        // Clean up temp directory
-                        try {
-                            const tempDirEnum = tempDir.enumerate_children(
-                                'standard::name',
-                                Gio.FileQueryInfoFlags.NONE,
-                                null
-                            );
-                            
-                            let fileInfo;
-                            while ((fileInfo = tempDirEnum.next_file(null)) !== null) {
-                                const fileName = fileInfo.get_name();
-                                const tempFile = tempDir.get_child(fileName);
-                                tempFile.delete(null);
-                            }
-                            tempDir.delete(null);
-                        } catch (e) {
-                            log('Failed to clean up temp directory: ' + e.message);
-                        }
+                        // Rename api-temp to api
+                        apiTempDir.move(
+                            apiDir,
+                            Gio.FileCopyFlags.NONE,
+                            null,
+                            null
+                        );
                         
                         // Reload calendar data
                         this._calendarData = new CalendarData.CalendarData();
@@ -1013,6 +1003,15 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         this._isUpdating = false;
                         this._updateMenuItem.setSensitive(true);
                         
+                        // Clean up api-temp on error
+                        try {
+                            if (apiTempDir.query_exists(null)) {
+                                this._deleteDirectory(apiTempDir);
+                            }
+                        } catch (cleanupError) {
+                            log('Failed to cleanup api-temp: ' + cleanupError.message);
+                        }
+                        
                         Main.notify('Nepali Calendar', 
                             `Error updating calendar data: ${e.message}`);
                         log('Calendar update error: ' + e.message);
@@ -1021,6 +1020,15 @@ const NepaliCalendarIndicator = GObject.registerClass(
                     this._updateStatusDisplay('Update failed. Could not download data.');
                     this._isUpdating = false;
                     this._updateMenuItem.setSensitive(true);
+                    
+                    // Clean up api-temp on failure
+                    try {
+                        if (apiTempDir.query_exists(null)) {
+                            this._deleteDirectory(apiTempDir);
+                        }
+                    } catch (cleanupError) {
+                        log('Failed to cleanup api-temp: ' + cleanupError.message);
+                    }
                     
                     Main.notify('Nepali Calendar', 
                         'Update failed. Could not download calendar data.');
@@ -1033,10 +1041,46 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 this._isUpdating = false;
                 this._updateMenuItem.setSensitive(true);
                 
+                // Clean up api-temp on error
+                try {
+                    if (apiTempDir.query_exists(null)) {
+                        this._deleteDirectory(apiTempDir);
+                    }
+                } catch (cleanupError) {
+                    log('Failed to cleanup api-temp: ' + cleanupError.message);
+                }
+                
                 Main.notify('Nepali Calendar', 
                     `Update failed: ${e.message}`);
                 log('Calendar update error: ' + e.message);
             });
+        }
+
+        // Helper method to delete a directory recursively
+        _deleteDirectory(dir) {
+            if (!dir.query_exists(null)) {
+                return;
+            }
+            
+            const dirEnum = dir.enumerate_children(
+                'standard::name,standard::type',
+                Gio.FileQueryInfoFlags.NONE,
+                null
+            );
+            
+            let fileInfo;
+            while ((fileInfo = dirEnum.next_file(null)) !== null) {
+                const child = dir.get_child(fileInfo.get_name());
+                const fileType = fileInfo.get_file_type();
+                
+                if (fileType === Gio.FileType.DIRECTORY) {
+                    this._deleteDirectory(child);
+                } else {
+                    child.delete(null);
+                }
+            }
+            
+            dir.delete(null);
         }
 
         // Cleanup method to disconnect all signals and destroy objects
