@@ -1,12 +1,15 @@
 {
   "name": "Nepali Calendar",
-  "description": "A Nepali Calendar viewer (1970-2089 BS) with Bikram Sambat dates, holidays, and tithis. GNOME 42-44 compatible version.",
+  "description": "A Nepali Calendar viewer (1970-2089 BS) with Bikram Sambat dates, holidays, and tithis. Compatible with GNOME 42-47.",
   "uuid": "simple-extension@example.com",
   "gettext-domain": "simple-extension",
   "shell-version": [
     "42",
     "43",
-    "44"
+    "44",
+    "45",
+    "46",
+    "47"
   ],
   "url": "https://github.com/ShudarsanRegmi/NepaliCalendarExtension"
 }

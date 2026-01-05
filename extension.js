@@ -1,3 +1,4 @@
+// Compatible imports for GNOME 42-47
 const GObject = imports.gi.GObject;
 const St = imports.gi.St;
 const Clutter = imports.gi.Clutter;
