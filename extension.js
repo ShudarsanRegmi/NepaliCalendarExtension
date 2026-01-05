@@ -151,8 +151,8 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._contextMenuManager = new PopupMenu.PopupMenuManager(this);
             this._contextMenuManager.addMenu(this._contextMenu);
             
-            Main.uiGroup.add_actor(this._contextMenu.actor);
-            this._contextMenu.actor.hide();
+            Main.uiGroup.add_child(this._contextMenu);
+            this._contextMenu.hide();
             
             // Add "Update Calendar Data" option
             this._updateMenuItem = new PopupMenu.PopupMenuItem('Update Calendar Data');
@@ -167,20 +167,20 @@ const NepaliCalendarIndicator = GObject.registerClass(
             
             // Add status label (hidden initially)
             this._statusMenuItem = new PopupMenu.PopupMenuItem('', { reactive: false });
-            this._statusMenuItem.actor.hide();
+            this._statusMenuItem.hide();
             this._contextMenu.addMenuItem(this._statusMenuItem);
         }
 
         _updateStatusDisplay(message) {
             if (message) {
                 this._statusMenuItem.label.set_text(message);
-                this._statusMenuItem.actor.show();
+                this._statusMenuItem.show();
                 // Keep context menu open to show status
                 if (!this._contextMenu.isOpen) {
                     this._contextMenu.open();
                 }
             } else {
-                this._statusMenuItem.actor.hide();
+                this._statusMenuItem.hide();
             }
         }
 
