@@ -68,9 +68,6 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             this.add_child(flagContainer);
 
-            // Add right-click context menu to panel button
-            this._buildContextMenu();
-
             this._calendarData = new CalendarData.CalendarData();
             this._dateConverter = new DateConverter.DateConverter();
             
@@ -91,6 +88,9 @@ const NepaliCalendarIndicator = GObject.registerClass(
             this._buildUI();
             this._loadYear(this._currentYear);
 
+            // Build separate context menu for right-click
+            this._buildContextMenu();
+
             // Reset to current date when menu opens
             const menuSignalId = this.menu.connect('open-state-changed', (menu, isOpen) => {
                 if (isOpen) {
@@ -98,6 +98,28 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 }
             });
             this._signalConnections.push({ object: this.menu, id: menuSignalId });
+        }
+
+        vfunc_event(event) {
+            // Handle right-click separately for context menu
+            if (event.type() === Clutter.EventType.BUTTON_PRESS) {
+                let button = event.get_button();
+                if (button === 3) { // Right-click
+                    // Close the main menu if open
+                    if (this.menu.isOpen) {
+                        this.menu.close();
+                    }
+                    this._contextMenu.toggle();
+                    return Clutter.EVENT_STOP;
+                } else if (button === 1) { // Left-click
+                    // Close context menu if open
+                    if (this._contextMenu.isOpen) {
+                        this._contextMenu.close();
+                    }
+                }
+            }
+            // Let parent handle left-click (opens calendar)
+            return super.vfunc_event(event);
         }
 
         _updatePanelDate() {
@@ -117,27 +139,46 @@ const NepaliCalendarIndicator = GObject.registerClass(
         }
 
         _buildContextMenu() {
-            // Add "Update Calendar Data" option to the right-click menu
+            // Create separate popup menu for right-click context menu
+            this._contextMenu = new PopupMenu.PopupMenu(
+                this,
+                0.0,
+                St.Side.TOP,
+                0
+            );
+            
+            // Use PopupMenuManager to handle outside clicks properly
+            this._contextMenuManager = new PopupMenu.PopupMenuManager(this);
+            this._contextMenuManager.addMenu(this._contextMenu);
+            
+            Main.uiGroup.add_actor(this._contextMenu.actor);
+            this._contextMenu.actor.hide();
+            
+            // Add "Update Calendar Data" option
             this._updateMenuItem = new PopupMenu.PopupMenuItem('Update Calendar Data');
             const updateMenuSignalId = this._updateMenuItem.connect('activate', () => {
                 this._updateCalendarData();
             });
             this._signalConnections.push({ object: this._updateMenuItem, id: updateMenuSignalId });
-            this.menu.addMenuItem(this._updateMenuItem);
+            this._contextMenu.addMenuItem(this._updateMenuItem);
             
             // Add a separator
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             
             // Add status label (hidden initially)
             this._statusMenuItem = new PopupMenu.PopupMenuItem('', { reactive: false });
             this._statusMenuItem.actor.hide();
-            this.menu.addMenuItem(this._statusMenuItem);
+            this._contextMenu.addMenuItem(this._statusMenuItem);
         }
 
         _updateStatusDisplay(message) {
             if (message) {
                 this._statusMenuItem.label.set_text(message);
                 this._statusMenuItem.actor.show();
+                // Keep context menu open to show status
+                if (!this._contextMenu.isOpen) {
+                    this._contextMenu.open();
+                }
             } else {
                 this._statusMenuItem.actor.hide();
             }
@@ -755,15 +796,12 @@ const NepaliCalendarIndicator = GObject.registerClass(
             }
             
             this._isUpdating = true;
-            this._updateStatusDisplay('🔄 Starting update...');
+            this._updateStatusDisplay('Fetching file list from GitHub...');
             this._updateMenuItem.setSensitive(false);
             
-            // GitHub raw URL base
-            const githubBaseUrl = 'https://raw.githubusercontent.com/ShudarsanRegmi/NepaliCalendarExtension/refs/heads/main/api/';
-            
-            // Years to download (1970-2089)
-            const startYear = 1970;
-            const endYear = 2089;
+            // GitHub API URL to list files in api directory
+            const githubApiUrl = 'https://api.github.com/repos/ShudarsanRegmi/NepaliCalendarExtension/contents/api';
+            const githubRawBaseUrl = 'https://raw.githubusercontent.com/ShudarsanRegmi/NepaliCalendarExtension/refs/heads/main/api/';
             
             // Get the api directory path
             const apiDirPath = GLib.build_filenamev([Me.path, 'api']);
@@ -788,17 +826,58 @@ const NepaliCalendarIndicator = GObject.registerClass(
             
             let successCount = 0;
             let failCount = 0;
-            let totalFiles = endYear - startYear + 1;
+            let totalFiles = 0;
             let completedFiles = 0;
+            let fileList = [];
+
+            // Function to fetch file list from GitHub API
+            const fetchFileList = () => {
+                return new Promise((resolve, reject) => {
+                    const message = Soup.Message.new('GET', githubApiUrl);
+                    
+                    if (!message) {
+                        reject(new Error('Failed to create API request'));
+                        return;
+                    }
+
+                    // Set User-Agent header (required by GitHub API)
+                    message.request_headers.append('User-Agent', 'GNOME-Shell-Extension');
+
+                    if (Soup.Session.prototype.hasOwnProperty('queue_message')) {
+                        session.queue_message(message, (sess, msg) => {
+                            if (msg.status_code === 200) {
+                                try {
+                                    let data = msg.response_body.data;
+                                    let files = JSON.parse(data);
+                                    
+                                    // Filter for .json files only
+                                    fileList = files
+                                        .filter(file => file.name.endsWith('.json') && file.name !== 'guidelines.txt')
+                                        .map(file => file.name.replace('.json', ''));
+                                    
+                                    totalFiles = fileList.length;
+                                    resolve(fileList);
+                                } catch (e) {
+                                    reject(new Error(`Failed to parse file list: ${e.message}`));
+                                }
+                            } else {
+                                reject(new Error(`GitHub API returned ${msg.status_code}`));
+                            }
+                        });
+                    } else {
+                        reject(new Error('Soup 3.x not fully implemented yet'));
+                    }
+                });
+            };
 
             // Function to download a single file
-            const downloadFile = (year) => {
+            const downloadFile = (fileName) => {
                 return new Promise((resolve, reject) => {
-                    const url = githubBaseUrl + year + '.json';
+                    const url = githubRawBaseUrl + fileName + '.json';
                     const message = Soup.Message.new('GET', url);
                     
                     if (!message) {
-                        reject(new Error(`Failed to create request for ${year}`));
+                        reject(new Error(`Failed to create request for ${fileName}`));
                         return;
                     }
 
@@ -807,7 +886,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         session.queue_message(message, (sess, msg) => {
                             if (msg.status_code === 200) {
                                 try {
-                                    const tempFilePath = GLib.build_filenamev([tempDirPath, year + '.json']);
+                                    const tempFilePath = GLib.build_filenamev([tempDirPath, fileName + '.json']);
                                     const tempFile = Gio.File.new_for_path(tempFilePath);
                                     
                                     // Get response body data
@@ -827,12 +906,12 @@ const NepaliCalendarIndicator = GObject.registerClass(
                                         null
                                     );
                                     
-                                    resolve(year);
+                                    resolve(fileName);
                                 } catch (e) {
-                                    reject(new Error(`Failed to save ${year}: ${e.message}`));
+                                    reject(new Error(`Failed to save ${fileName}: ${e.message}`));
                                 }
                             } else {
-                                reject(new Error(`HTTP ${msg.status_code} for ${year}`));
+                                reject(new Error(`HTTP ${msg.status_code} for ${fileName}`));
                             }
                         });
                     } else {
@@ -844,12 +923,25 @@ const NepaliCalendarIndicator = GObject.registerClass(
 
             // Download all files sequentially (to avoid overwhelming the server)
             const downloadAllFiles = async () => {
-                for (let year = startYear; year <= endYear; year++) {
+                // First, fetch the file list from GitHub
+                try {
+                    await fetchFileList();
+                    this._updateStatusDisplay(`Found ${totalFiles} files. Starting download...`);
+                } catch (e) {
+                    this._updateStatusDisplay(`Error fetching file list: ${e.message}`);
+                    this._isUpdating = false;
+                    this._updateMenuItem.setSensitive(true);
+                    Main.notify('Nepali Calendar', `Failed to fetch file list: ${e.message}`);
+                    return;
+                }
+                
+                // Download each file
+                for (let fileName of fileList) {
                     try {
-                        await downloadFile(year);
+                        await downloadFile(fileName);
                         successCount++;
                     } catch (e) {
-                        log(`Failed to download ${year}.json: ${e.message}`);
+                        log(`Failed to download ${fileName}.json: ${e.message}`);
                         failCount++;
                     }
                     
@@ -857,20 +949,21 @@ const NepaliCalendarIndicator = GObject.registerClass(
                     
                     // Update status in menu every 10 files
                     if (completedFiles % 10 === 0 || completedFiles === totalFiles) {
-                        this._updateStatusDisplay(`🔄 Downloading: ${completedFiles}/${totalFiles} files`);
+                        this._updateStatusDisplay(`Downloading: ${completedFiles}/${totalFiles} files`);
                     }
                 }
                 
                 // If we successfully downloaded files, replace the api directory
                 if (successCount > 0) {
+                    this._updateStatusDisplay('Copying files to extension directory...');
                     try {
                         // Copy all downloaded files to api directory
-                        for (let year = startYear; year <= endYear; year++) {
-                            const tempFilePath = GLib.build_filenamev([tempDirPath, year + '.json']);
+                        for (let fileName of fileList) {
+                            const tempFilePath = GLib.build_filenamev([tempDirPath, fileName + '.json']);
                             const tempFile = Gio.File.new_for_path(tempFilePath);
                             
                             if (tempFile.query_exists(null)) {
-                                const destFilePath = GLib.build_filenamev([apiDirPath, year + '.json']);
+                                const destFilePath = GLib.build_filenamev([apiDirPath, fileName + '.json']);
                                 const destFile = Gio.File.new_for_path(destFilePath);
                                 
                                 // Copy file (replace if exists)
@@ -909,14 +1002,14 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         // Reload current year
                         this._loadYear(this._currentYear);
                         
-                        this._updateStatusDisplay(`✅ Update complete! ${successCount} files updated.${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+                        this._updateStatusDisplay(`Update complete! ${successCount} files updated.${failCount > 0 ? ` (${failCount} failed)` : ''}`);
                         this._isUpdating = false;
                         this._updateMenuItem.setSensitive(true);
                         
                         Main.notify('Nepali Calendar', 
                             `Update complete! Successfully updated ${successCount} files.${failCount > 0 ? ` (${failCount} failed)` : ''}`);
                     } catch (e) {
-                        this._updateStatusDisplay(`❌ Error: ${e.message}`);
+                        this._updateStatusDisplay(`Error: ${e.message}`);
                         this._isUpdating = false;
                         this._updateMenuItem.setSensitive(true);
                         
@@ -925,7 +1018,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
                         log('Calendar update error: ' + e.message);
                     }
                 } else {
-                    this._updateStatusDisplay('❌ Update failed. Could not download data.');
+                    this._updateStatusDisplay('Update failed. Could not download data.');
                     this._isUpdating = false;
                     this._updateMenuItem.setSensitive(true);
                     
@@ -936,7 +1029,7 @@ const NepaliCalendarIndicator = GObject.registerClass(
             
             // Start the download process
             downloadAllFiles().catch(e => {
-                this._updateStatusDisplay(`❌ Error: ${e.message}`);
+                this._updateStatusDisplay(`Error: ${e.message}`);
                 this._isUpdating = false;
                 this._updateMenuItem.setSensitive(true);
                 
@@ -963,6 +1056,17 @@ const NepaliCalendarIndicator = GObject.registerClass(
                 }
             });
             this._signalConnections = [];
+
+            // Cleanup context menu manager
+            if (this._contextMenuManager) {
+                this._contextMenuManager = null;
+            }
+
+            // Cleanup context menu
+            if (this._contextMenu) {
+                this._contextMenu.destroy();
+                this._contextMenu = null;
+            }
 
             // Cleanup data objects
             if (this._calendarData) {
